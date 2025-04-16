@@ -23,6 +23,9 @@ ExportedObj/
 *.svd
 *.pdb
 
+# User-specific settings
+UserSettings/
+
 # Unity3D generated meta files
 *.pidb.meta
 
