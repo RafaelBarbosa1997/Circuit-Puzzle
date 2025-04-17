@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f0d33fcd9c41624e82144ea6edeabc8, type: 3}
+  m_Name: CircuitPuzzlePieceAssets
+  m_EditorClassIdentifier: 
+  blankPiece: {fileID: 0}
+  straightPiece: {fileID: 0}
+  tPiece: {fileID: 0}
+  cornerPiece: {fileID: 0}
+  startPiece: {fileID: 0}
+  endPiece: {fileID: 0}
+  previewPiece: {fileID: 0}
+  selectionIndicator: {fileID: 0}
+  straightPieceUnpowered: {fileID: 0}
+  tPieceUnpowered: {fileID: 0}
+  cornerPieceUnpowered: {fileID: 0}
+  startPieceUnpowered: {fileID: 0}
+  endPieceUnpowered: {fileID: 0}
+  straightPiecePowered: {fileID: 0}
+  tPiecePowered: {fileID: 0}
+  cornerPiecePowered: {fileID: 0}
+  startPiecePowered: {fileID: 0}
+  endPiecePowered: {fileID: 0}
+  greenBase: {fileID: 0}
+  redBase: {fileID: 0}
