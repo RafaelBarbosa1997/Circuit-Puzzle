@@ -11,16 +11,8 @@ namespace CircuitPuzzle
     public class PuzzleSettingsInspector : Editor
     {
         #region FIELDS
-        // Styles.
-        private GUIStyle headerStyle;
-        private GUIStyle labelStyle;
-
-        // Button styles.
-        private GUIStyle activeButton;
-        private GUIStyle inactiveButton;
-
         // Spacing
-        private float spacing = 10;
+        private const float spacing = 10;
         #endregion
 
         public override void OnInspectorGUI()
@@ -32,14 +24,11 @@ namespace CircuitPuzzle
                 return;
             }
 
-            // Get styles.
-            headerStyle = settings.References.PuzzleCreatorAssets.HeaderStyle;
-            labelStyle = settings.References.PuzzleCreatorAssets.LabelStyle;
-            activeButton = settings.References.PieceAssets.ActiveButton;
-            inactiveButton = settings.References.PieceAssets.InactiveButton;
+            // Get reference to the inspector assets for custom editor.
+            InspectorAssetsSO inspectorAssets = settings.GetComponent<SOAssetHolder>().InspectorAssets;
 
             // TITLE.
-            GUILayout.Label("Puzzle Settings", headerStyle);
+            GUILayout.Label("Puzzle Settings", inspectorAssets.DefaultHeader);
 
             // Spacing //
             GUILayout.Space(spacing * 2);
@@ -53,7 +42,7 @@ namespace CircuitPuzzle
 
             // PUZZLE TYPE SECTION.
             // Title.
-            GUILayout.Label("Puzzle Type", labelStyle);
+            GUILayout.Label("Puzzle Type", inspectorAssets.DefaultLabel);
 
             // Spacing //
             GUILayout.Space(spacing);
@@ -67,14 +56,14 @@ namespace CircuitPuzzle
 
             if (settings.OneTimeCompletion)
             {
-                oneTime = activeButton;
-                continuous = inactiveButton;
+                oneTime = inspectorAssets.ActiveButton;
+                continuous = inspectorAssets.InactiveButton;
             }
 
             else
             {
-                oneTime = inactiveButton;
-                continuous = activeButton;
+                oneTime = inspectorAssets.InactiveButton;
+                continuous = inspectorAssets.ActiveButton;
             }
 
             // Continuous button.
@@ -105,7 +94,7 @@ namespace CircuitPuzzle
 
             //ENDING GROUP SECTION.
             // Title.
-            GUILayout.Label("Group Mode", labelStyle);
+            GUILayout.Label("Group Mode", inspectorAssets.DefaultLabel);
 
             // Spacing //
             GUILayout.Space(spacing);
@@ -119,14 +108,14 @@ namespace CircuitPuzzle
 
             if (settings.IsGrouped)
             {
-                endingSingle = inactiveButton;
-                endingGrouped = activeButton;
+                endingSingle = inspectorAssets.InactiveButton;
+                endingGrouped = inspectorAssets.ActiveButton;
             }
 
             else
             {
-                endingSingle = activeButton;
-                endingGrouped = inactiveButton;
+                endingSingle = inspectorAssets.ActiveButton;
+                endingGrouped = inspectorAssets.InactiveButton;
             }
 
             // Single button.
@@ -157,7 +146,7 @@ namespace CircuitPuzzle
 
             // LOCK STARTER SECTION.
             // Title.
-            GUILayout.Label("Starter pieces", labelStyle);
+            GUILayout.Label("Starter pieces", inspectorAssets.DefaultLabel);
 
             GUILayout.Space(spacing);
 
@@ -170,14 +159,14 @@ namespace CircuitPuzzle
 
                     if (settings.LockStartingPieces)
                     {
-                        starterLocked = activeButton;
-                        starterUnlocked = inactiveButton;
+                        starterLocked = inspectorAssets.ActiveButton;
+                        starterUnlocked = inspectorAssets.InactiveButton;
                     }
 
                     else
                     {
-                        starterLocked = inactiveButton;
-                        starterUnlocked = activeButton;
+                        starterLocked = inspectorAssets.InactiveButton;
+                        starterUnlocked = inspectorAssets.ActiveButton;
                     }
                
                     // Locked button.
@@ -206,7 +195,7 @@ namespace CircuitPuzzle
 
             // LOCK ENDING SECTION.
             // Title.
-            GUILayout.Label("Ending Pieces", labelStyle);
+            GUILayout.Label("Ending Pieces", inspectorAssets.DefaultLabel);
 
             // Spacing //
             GUILayout.Space(spacing);
@@ -220,14 +209,14 @@ namespace CircuitPuzzle
             
             if(settings.LockEndingPieces)
             {
-                endingLocked = activeButton;
-                endingUnlocked = inactiveButton;
+                endingLocked = inspectorAssets.ActiveButton;
+                endingUnlocked = inspectorAssets.InactiveButton;
             }
 
             else
             {
-                endingLocked = inactiveButton;
-                endingUnlocked = activeButton;
+                endingLocked = inspectorAssets.InactiveButton;
+                endingUnlocked = inspectorAssets.ActiveButton;
             }
             
             // Locked button.

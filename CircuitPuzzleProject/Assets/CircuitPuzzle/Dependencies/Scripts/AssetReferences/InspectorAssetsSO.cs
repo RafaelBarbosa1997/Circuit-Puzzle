@@ -28,6 +28,8 @@ namespace CircuitPuzzle
         private GUIStyle groupedWarningLabel;
         [SerializeField]
         private GUIStyle groupedWarningSubLabel;
+        [SerializeField]
+        private GUIStyle userModelLabel;
 
         // Field styles.
         [Header("Field Styles")]
@@ -63,6 +65,7 @@ namespace CircuitPuzzle
         public GUIStyle DefaultLabel { get => defaultLabel; private set => defaultLabel = value; }
         public GUIStyle GroupedWarningLabel { get => groupedWarningLabel; private set => groupedWarningLabel = value; }
         public GUIStyle GroupedWarningSubLabel { get => groupedWarningSubLabel; private set => groupedWarningSubLabel = value; }
+        public GUIStyle UserModelLabel { get => userModelLabel; private set => userModelLabel = value; }
         public GUIStyle DefaultField { get => defaultField; private set => defaultField = value; }
         public GUIStyle ChangesPendingField { get => changesPendingField; private set => changesPendingField = value; }
         public GUIStyle DefaultButton { get => defaultButton; private set => defaultButton = value; }

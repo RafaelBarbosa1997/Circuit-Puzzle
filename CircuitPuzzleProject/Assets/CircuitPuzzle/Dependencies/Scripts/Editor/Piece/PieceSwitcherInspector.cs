@@ -10,15 +10,11 @@ namespace CircuitPuzzle
     public class PieceSwitcherInspector : Editor
     {
         #region FIELDS
-        // Styles.
-        private GUIStyle inactiveButton;
-        private GUIStyle activeButton;
-
         // Button styles.
         private GUIStyle[] buttons;
 
         // Spacing.
-        private float spacing = 10;
+        private const float spacing = 10;
         #endregion
 
         #region GUI
@@ -26,17 +22,20 @@ namespace CircuitPuzzle
         {
             // Get PieceSwitcher reference.
             PieceSwitcher switcher = (PieceSwitcher)target;
+            if (switcher == null)
+            {
+                return;
+            }
 
-            // Set styles from references.
-            inactiveButton = switcher.References.PieceAssets.InactiveButton;
-            activeButton = switcher.References.PieceAssets.ActiveButton;
+            // Get reference to the inspector assets for custom editor.
+            InspectorAssetsSO inspectorAssets = switcher.GetComponent<SOAssetHolder>().InspectorAssets;
 
             // Set the active style on active button.
-            SetActiveButton(switcher);
+            SetActiveButton(switcher, inspectorAssets);
 
             GUILayout.BeginVertical();
                 // Title.
-                GUILayout.Label("Piece Switcher", switcher.References.PuzzleCreatorAssets.HeaderStyle);
+                GUILayout.Label("Piece Switcher", inspectorAssets.DefaultHeader);
 
                 // Spacing //
                 GUILayout.Space(spacing * 2);
@@ -127,7 +126,7 @@ namespace CircuitPuzzle
         /// <summary>
         ///  Sets the the active button according to piece type.
         /// </summary>
-        private void SetActiveButton(PieceSwitcher switcher)
+        private void SetActiveButton(PieceSwitcher switcher, InspectorAssetsSO inspectorAssets)
         {
             // Create button array if it is null.
             if(buttons == null)
@@ -144,12 +143,12 @@ namespace CircuitPuzzle
             {
                 if(i == typeIndex)
                 {
-                    buttons[i] = activeButton;
+                    buttons[i] = inspectorAssets.ActiveButton;
                 }
 
                 else
                 {
-                    buttons[i] = inactiveButton;
+                    buttons[i] = inspectorAssets.InactiveButton;
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // Spacing value.
-        private float spacing = 10;
+        private const float spacing = 10;
         #endregion
 
         #region GUI
@@ -18,9 +18,16 @@ namespace CircuitPuzzle
         {
             // Get reference to rotator script.
             PieceRotator rotator = (PieceRotator)target;
+            if(rotator == null)
+            {
+                return;
+            }
+
+            // Get reference to the inspector assets for custom editor.
+            InspectorAssetsSO inspectorAssets = rotator.GetComponent<SOAssetHolder>().InspectorAssets;
 
             // Header.
-            GUILayout.Label("Piece Rotation", rotator.References.PuzzleCreatorAssets.HeaderStyle);
+            GUILayout.Label("Piece Rotation", inspectorAssets.DefaultHeader);
 
             // Spacing //
             GUILayout.Space(spacing);
@@ -28,13 +35,13 @@ namespace CircuitPuzzle
             // Buttons.
             GUILayout.BeginHorizontal();
                 // Left button.
-                if (GUILayout.Button(rotator.References.PuzzleCreatorAssets.LeftArrow))
+                if (GUILayout.Button(inspectorAssets.LeftArrow))
                 {
                     rotator.RotateLeft();
                 }
 
                 // Right button.
-                if (GUILayout.Button(rotator.References.PuzzleCreatorAssets.RightArrow))
+                if (GUILayout.Button(inspectorAssets.RightArrow))
                 {
                     rotator.RotateRight();
                 }

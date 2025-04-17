@@ -9,23 +9,8 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // Spacing.
-        private int contentSpacing = 20;
-        private int groupSpacing = 5;
-
-        // Styles.
-        private GUIStyle headerStyle;
-        private GUIStyle labelStyle;
-        private GUIStyle fieldStyle;
-        private GUIStyle buttonStyle;
-        private GUIStyle fieldChangesStyle;
-        private GUIStyle buttonGreenStyle;
-        private GUIStyle buttonRedStyle;
-        private GUIStyle activeButton;
-        private GUIStyle inactiveButton;
-
-        // Textures.
-        private Texture2D leftArrowTexture;
-        private Texture2D rightArrowTexture;
+        private const int contentSpacing = 20;
+        private const int groupSpacing = 5;
         #endregion
 
         #region GUI
@@ -34,56 +19,44 @@ namespace CircuitPuzzle
             #region SETUP
             // Get selected PuzzleCreator script.
             // Returns if casting fails.
-            PuzzleCreator creator = target as PuzzleCreator;
+            PuzzleCreator creator = (PuzzleCreator)target;
             if (creator == null)
             {
                 return;
             }
 
-            // Set styles for UI elements.
-            headerStyle = creator.References.PuzzleCreatorAssets.HeaderStyle;
-            labelStyle = creator.References.PuzzleCreatorAssets.LabelStyle;
-            fieldStyle = creator.References.PuzzleCreatorAssets.FieldStyle;
-            buttonStyle= creator.References.PuzzleCreatorAssets.ButtonStyle;
-            fieldChangesStyle = creator.References.PuzzleCreatorAssets.FieldChangesStyle;
-            buttonGreenStyle = creator.References.PuzzleCreatorAssets.ButtonGreenStyle;
-            buttonRedStyle = creator.References.PuzzleCreatorAssets.ButtonRedStyle;
-            activeButton = creator.References.PieceAssets.ActiveButton;
-            inactiveButton = creator.References.PieceAssets.InactiveButton;
-
-            // Set textures for UI elements.
-            leftArrowTexture = creator.References.PuzzleCreatorAssets.LeftArrow;
-            rightArrowTexture = creator.References.PuzzleCreatorAssets.RightArrow;
+            // Get reference to the inspector assets for custom editor.
+            InspectorAssetsSO inspectorAssets = creator.GetComponent<SOAssetHolder>().InspectorAssets;
             #endregion
 
             // Bool to setup creation preview.
             bool preview = true;
 
-            // Initial undo warning.
-            if (creator.UndoCleared == false || PrefabUtility.IsPartOfAnyPrefab(creator.gameObject))
-            {
-                bool instantiate = EditorUtility.DisplayDialog("Circuit Puzzle", "To avoid errors, creating a circuit puzzle instance clears the undo history.\n" +
-                    "If you wish to revert any changes in the scene, do so before creating a circuit puzzle.", "Continue", "Cancel");
+            //// Initial undo warning.
+            //if (creator.UndoCleared == false || PrefabUtility.IsPartOfAnyPrefab(creator.gameObject))
+            //{
+            //    bool instantiate = EditorUtility.DisplayDialog("Circuit Puzzle", "To avoid errors, creating a circuit puzzle instance clears the undo history.\n" +
+            //        "If you wish to revert any changes in the scene, do so before creating a circuit puzzle.", "Continue", "Cancel");
 
-                if (instantiate)
-                {
-                    Undo.ClearAll();
-                }
+            //    if (instantiate)
+            //    {
+            //        Undo.ClearAll();
+            //    }
 
-                else
-                {
-                    preview = false;
-                    DestroyImmediate(creator.gameObject);
-                }
+            //    else
+            //    {
+            //        preview = false;
+            //        DestroyImmediate(creator.gameObject);
+            //    }
 
-                PrefabUtility.UnpackPrefabInstance(creator.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            //    PrefabUtility.UnpackPrefabInstance(creator.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 
-                creator.UndoCleared = true;
-            }
+            //    creator.UndoCleared = true;
+            //}
 
             #region LAYOUT
             // Board size settings header.
-            EditorGUILayout.LabelField("Board Size", headerStyle);
+            EditorGUILayout.LabelField("Board Size", inspectorAssets.DefaultHeader);
 
             // Spacing //
             GUILayout.Space(contentSpacing);
@@ -91,19 +64,19 @@ namespace CircuitPuzzle
             // ROWS SECTION.
             // Field.
             EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Rows", labelStyle);
+                EditorGUILayout.LabelField("Rows", inspectorAssets.DefaultLabel);
                 // If changes to the number of rows were made.
                 if(creator.SelectedRows != creator.SetRows)
                 {
                     // Make field red to show that changes have been made.
-                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, fieldChangesStyle);
+                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, inspectorAssets.ChangesPendingField);
                 }
 
                  //If no changes were made.
                 else
                 {
                     // Make field default color to show that no changes were made.
-                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, fieldStyle);
+                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, inspectorAssets.DefaultField);
                 }
             EditorGUILayout.EndHorizontal();
 
@@ -113,13 +86,13 @@ namespace CircuitPuzzle
             // Arrow Buttons.
             EditorGUILayout.BeginHorizontal();
                 // Left Arrow.
-                if (GUILayout.Button(leftArrowTexture))
+                if (GUILayout.Button(inspectorAssets.LeftArrow))
                 {
                     creator.SelectedRows--;
                 }
 
                 // Right Arrow.
-                if (GUILayout.Button(rightArrowTexture))
+                if (GUILayout.Button(inspectorAssets.RightArrow))
                 {
                     creator.SelectedRows++;
                 }
@@ -131,19 +104,19 @@ namespace CircuitPuzzle
             // COLUMNS SECTION.
             // Field.
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Columns", labelStyle);
+            EditorGUILayout.LabelField("Columns", inspectorAssets.DefaultLabel);
             // If changes to the number of columns have been made.
             if (creator.SetColumns != creator.SelectedColumns)
             {
                 // Make field red to show that changes have been made.
-                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, fieldChangesStyle);
+                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, inspectorAssets.ChangesPendingField);
             }
 
             // If no changes were made.
             else
             {
                 // Make field default color to show that no changes have been made.
-                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, fieldStyle);
+                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, inspectorAssets.DefaultField);
             }
             EditorGUILayout.EndHorizontal();
 
@@ -153,13 +126,13 @@ namespace CircuitPuzzle
             // Arrow Buttons.
             EditorGUILayout.BeginHorizontal();
             // Left Arrow.
-            if (GUILayout.Button(leftArrowTexture))
+            if (GUILayout.Button(inspectorAssets.LeftArrow))
             {
                 creator.SelectedColumns--;
             }
 
             // Right Arrow.
-            if (GUILayout.Button(rightArrowTexture))
+            if (GUILayout.Button(inspectorAssets.RightArrow))
             {
                 creator.SelectedColumns++;
             }
@@ -175,15 +148,15 @@ namespace CircuitPuzzle
             // If changes were made.
             if(creator.SelectedColumns != creator.SetColumns || creator.SelectedRows != creator.SetRows)
             {
-                currentApply = buttonGreenStyle;
-                currentCancel = buttonRedStyle;
+                currentApply = inspectorAssets.GreenButton;
+                currentCancel = inspectorAssets.RedButton;
             }
 
             // If changes were not made.
             else
             {
-                currentApply = buttonStyle;
-                currentCancel = buttonStyle;
+                currentApply = inspectorAssets.DefaultButton;
+                currentCancel = inspectorAssets.DefaultButton;
             }
             EditorGUILayout.BeginVertical();
                 // Apply button.
@@ -206,7 +179,7 @@ namespace CircuitPuzzle
             GUILayout.Space(contentSpacing);
 
             // Clear board button.
-            if(GUILayout.Button("Clear Board", buttonStyle))
+            if(GUILayout.Button("Clear Board", inspectorAssets.DefaultButton))
             {
                 // Create popup to confirm whether user wants to clear the board.
                 bool clearOutput = EditorUtility.DisplayDialog("Clear Board", "Are you sure you wanna clear the current board?", "Yes", "No");
@@ -234,7 +207,7 @@ namespace CircuitPuzzle
 
             // LIMITER SECTION.
             // Title.
-            GUILayout.Label("Limiter", labelStyle);
+            GUILayout.Label("Limiter", inspectorAssets.DefaultLabel);
 
             // Spacing //
             GUILayout.Space(groupSpacing * 2);
@@ -245,14 +218,14 @@ namespace CircuitPuzzle
 
             if (creator.IsLimited)
             {
-                enabledStyle = activeButton;
-                disabledStyle = inactiveButton;
+                enabledStyle = inspectorAssets.ActiveButton;
+                disabledStyle = inspectorAssets.InactiveButton;
             }
 
             else
             {
-                enabledStyle = inactiveButton;
-                disabledStyle = activeButton;
+                enabledStyle = inspectorAssets.InactiveButton;
+                disabledStyle = inspectorAssets.ActiveButton;
             }
 
             // Buttons.

@@ -13,8 +13,8 @@ namespace CircuitPuzzle
     public class PuzzleCreator : MonoBehaviour, ISerializationCallbackReceiver
     {
         #region FIELDS
-        // References to assets to be used for custom inspector.
-        private SOAssetHolder references;
+        // References to assets to be used for instantiating the puzzle.
+        private PieceAssetsSO pieceAssets;
 
         // Reference to transform where piece prefabs will be instantiated.
         private Transform boardTransform;
@@ -149,7 +149,6 @@ namespace CircuitPuzzle
                 }
             }
         }
-        public SOAssetHolder References { get => references; private set => references = value; }
         public int SetRows { get => setRows; private set => setRows = value; }
         public int SetColumns { get => setColumns; private set => setColumns = value; }
         public bool IsLimited { get => isLimited; set => isLimited = value; }
@@ -164,7 +163,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get assetReferences object.
-            references = GetComponent<SOAssetHolder>();
+            pieceAssets = GetComponent<SOAssetHolder>().PieceAssets;
 
             // Get board tranform reference.
             boardTransform = transform.GetChild(0);
@@ -173,17 +172,17 @@ namespace CircuitPuzzle
             previewTransform = transform.GetChild(1);
 
             // Get piece prefab from assets.
-            blankPiece = references.PuzzleCreatorAssets.BlankPiecePrefab;
+            blankPiece = pieceAssets.BlankPiece;
 
             // Preview pieces prefab references.
-            previewPiece = references.PuzzleCreatorAssets.PreviewPiecePrefab;
+            previewPiece = pieceAssets.PreviewPiece;
 
             // Get MeshRenderer and SpriteRenderer references.
             pieceMeshRenderer = blankPiece.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<MeshRenderer>();
 
             // Get material references.
-            greenBase = references.PuzzleCreatorAssets.GreenBase;
-            redBase = references.PuzzleCreatorAssets.RedBase;
+            greenBase = pieceAssets.GreenBase;
+            redBase = pieceAssets.RedBase;
 
             // If puzzle matrix has not been initialized, do so.
             if (puzzlePieces == null)

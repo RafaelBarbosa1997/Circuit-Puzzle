@@ -549,7 +549,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &91779574
 MonoBehaviour:
@@ -834,7 +834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &212579631
 MonoBehaviour:
@@ -1711,7 +1711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &301331757
 MonoBehaviour:
@@ -3342,7 +3342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &509870201
 MonoBehaviour:
@@ -3565,7 +3565,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &519350278
 MonoBehaviour:
@@ -3732,7 +3732,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &589137009
 MonoBehaviour:
@@ -3884,7 +3884,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &627773213
 MonoBehaviour:
@@ -4005,7 +4005,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &663056001
 MonoBehaviour:
@@ -4550,7 +4550,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &803723609
 MonoBehaviour:
@@ -5072,7 +5072,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &883345742
 MonoBehaviour:
@@ -5737,7 +5737,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1000005807
 MonoBehaviour:
@@ -6316,7 +6316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1138384875
 MonoBehaviour:
@@ -7023,7 +7023,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1236040338
 MonoBehaviour:
@@ -7267,7 +7267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1259070284
 MonoBehaviour:
@@ -7726,7 +7726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1382427073
 MonoBehaviour:
@@ -7848,7 +7848,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1384738738
 MonoBehaviour:
@@ -8520,7 +8520,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1508957943
 MonoBehaviour:
@@ -9640,7 +9640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1789520981
 MonoBehaviour:
@@ -9912,7 +9912,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1817220556
 MonoBehaviour:
@@ -10474,7 +10474,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
+  inspectorAssets: {fileID: 0}
   pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
 --- !u!114 &1922507054
 MonoBehaviour:
@@ -12354,8 +12354,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puzzleCreatorAssets: {fileID: 11400000, guid: 8cd6a5c89c9e5af44a685bcee28b10c5, type: 2}
-  pieceAssets: {fileID: 11400000, guid: 34d1fd53b76f6fc4f927d94de8494cfe, type: 2}
+  inspectorAssets: {fileID: 11400000, guid: f1a3d133bd4e3514b80788a7a43d849d, type: 2}
+  pieceAssets: {fileID: 11400000, guid: 83247ab0c3848b745b954b3589b1babc, type: 2}
 --- !u!114 &7711385045795057236
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -9,17 +9,20 @@ namespace CircuitPuzzle
     public class GroupedEndingWarningInspector : Editor
     {
         #region FIELDS
-        private float spacing = 10;
+        private const float spacing = 10;
         #endregion
 
         public override void OnInspectorGUI()
         {
-            // Get script reference.
+            // Get target.
             GroupedEndingWarning warning = (GroupedEndingWarning)target;
             if (warning == null)
             {
                 return;
             }
+
+            // Get reference to the inspector assets for custom editor.
+            InspectorAssetsSO inspectorAssets = warning.GetComponent<SOAssetHolder>().InspectorAssets;
 
             // Check if puzzle is in grouped or single mode.
             bool active = false;
@@ -31,7 +34,7 @@ namespace CircuitPuzzle
             string messageDetails = "";
             string functionMessage = "";
 
-            GUIStyle headerColor = warning.Assets.PuzzleCreatorAssets.WarningHeaderStyle;
+            GUIStyle headerColor = inspectorAssets.GroupedWarningHeader;
 
             // If in grouped mode.
             if(active == true)
@@ -60,11 +63,11 @@ namespace CircuitPuzzle
 
             GUILayout.Space(spacing);
 
-            GUILayout.Label(messageDetails, warning.Assets.PuzzleCreatorAssets.WarningLabelStyle);
+            GUILayout.Label(messageDetails, inspectorAssets.GroupedWarningLabel);
 
             GUILayout.Space(spacing);
 
-            GUILayout.Label(functionMessage, warning.Assets.PuzzleCreatorAssets.WarningFunctionStyle);
+            GUILayout.Label(functionMessage, inspectorAssets.GroupedWarningSubLabel);
 
             GUILayout.EndVertical();
         }

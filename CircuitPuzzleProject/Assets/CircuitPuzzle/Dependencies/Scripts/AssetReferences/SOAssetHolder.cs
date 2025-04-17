@@ -7,11 +7,11 @@ namespace CircuitPuzzle
     public class SOAssetHolder : MonoBehaviour
     {
         [SerializeField]
-        private PuzzleCreatorAssetReferencesSO puzzleCreatorAssets;
+        private InspectorAssetsSO inspectorAssets;
         [SerializeField]
-        private PieceAssetReferencesSO pieceAssets;
+        private PieceAssetsSO pieceAssets;
 
-        public PuzzleCreatorAssetReferencesSO PuzzleCreatorAssets { get => puzzleCreatorAssets; private set => puzzleCreatorAssets = value; }
-        public PieceAssetReferencesSO PieceAssets { get => pieceAssets; private set => pieceAssets = value; }
+        public InspectorAssetsSO InspectorAssets { get => inspectorAssets; private set => inspectorAssets = value; }
+        public PieceAssetsSO PieceAssets { get => pieceAssets; private set => pieceAssets = value; }
     }
 }
