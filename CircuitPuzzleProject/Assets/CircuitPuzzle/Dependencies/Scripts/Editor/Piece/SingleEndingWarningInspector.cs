@@ -24,29 +24,40 @@ namespace CircuitPuzzle
             // Get reference to the inspector assets for custom editor.
             InspectorAssetsSO inspectorAssets = warning.GetComponent<SOAssetHolder>().InspectorAssets;
 
-            // Check if puzzle is in grouped or single mode.
-            bool active = false;
-
-            if (warning.PuzzleSettings.IsGrouped == false) active = true;
-
-            // Display message according to puzzle mode.
+            // Initialize variables to be used in warning message.
             string warningMessage = "";
             string messageDetails = "";
             string functionMessage = "";
 
             GUIStyle headerColor = inspectorAssets.GroupedWarningHeader;
 
-            // If in grouped mode.
-            if (active == true)
+            // When piece isn't part of a puzzle (most likely prefab mode).
+            if (warning.PuzzleSettings == null)
+            {
+                warningMessage = "Piece is not part of a puzzle";
+                messageDetails = "This piece is not part of a puzzle, so it cannot be grouped or single.";
+                functionMessage = "This probably means you are viewing this piece in prefab mode.";
+
+                headerColor.normal.textColor = Color.white;
+
+                DisplayWarning(warningMessage, messageDetails, functionMessage, headerColor, inspectorAssets);
+
+                return;
+            }
+
+            // If puzzle is in single mode.
+            if (warning.PuzzleSettings.IsGrouped == false)
             {
                 warningMessage = "Single mode is enabled";
                 messageDetails = "Use events below to setup behavior for turning power on and off for this specific piece.";
                 functionMessage = "";
 
                 headerColor.normal.textColor = Color.green;
+
+                DisplayWarning(warningMessage, messageDetails, functionMessage, headerColor, inspectorAssets);
             }
 
-            // If in single mode.
+            // If puzzle is in grouped mode.
             else
             {
                 warningMessage = "Single mode is disabled";
@@ -54,12 +65,24 @@ namespace CircuitPuzzle
                 functionMessage = "Events added below will NOT function";
 
                 headerColor.normal.textColor = Color.red;
-            }
 
-            // Display message.
+                DisplayWarning(warningMessage, messageDetails, functionMessage, headerColor, inspectorAssets);
+            }
+        }
+
+        /// <summary>
+        /// Displays the warning message in the inspector, according to whether puzzle is in single or grouped mode.
+        /// </summary>
+        /// <param name="warningMessage"></param>
+        /// <param name="messageDetails"></param>
+        /// <param name="functionMessage"></param>
+        /// <param name="warningColor"></param>
+        /// <param name="inspectorAssets"></param>
+        private void DisplayWarning(string warningMessage, string messageDetails, string functionMessage, GUIStyle warningColor, InspectorAssetsSO inspectorAssets)
+        {
             GUILayout.BeginVertical();
 
-            GUILayout.Label(warningMessage, headerColor);
+            GUILayout.Label(warningMessage, warningColor);
 
             GUILayout.Space(spacing);
 
