@@ -10,6 +10,13 @@ namespace CircuitPuzzle
     public class InspectorAssetsSO : ScriptableObject
     {
         #region FIELDS
+        // Spacing values.
+        [Header("Spacing Values")]
+        [SerializeField]
+        private float contentSpacing;
+        [SerializeField]
+        private float groupSpacing;
+
         // Arrow textures.
         [Header("Arrow Textures")]
         [SerializeField]
@@ -62,6 +69,8 @@ namespace CircuitPuzzle
         #endregion
 
         #region PROPERTIES
+        public float ContentSpacing { get => contentSpacing; private set => contentSpacing = value; }
+        public float GroupSpacing { get => groupSpacing; private set => groupSpacing = value; }
         public Texture2D LeftArrow { get => leftArrow; private set => leftArrow = value; }
         public Texture2D RightArrow { get => rightArrow; private set => rightArrow = value; }
         public GUIStyle DefaultHeader { get => defaultHeader; private set => defaultHeader = value; }

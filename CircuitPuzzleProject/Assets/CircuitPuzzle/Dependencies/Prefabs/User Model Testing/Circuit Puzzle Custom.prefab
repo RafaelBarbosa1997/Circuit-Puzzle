@@ -237,7 +237,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1771792332399401675}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0cc13ff0ac4ac84a8892fd6ef03b025, type: 3}
+  m_Script: {fileID: 11500000, guid: 7c39d7b6b1c0e1a4cbd06e8e8146c250, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   inspectorAssets: {fileID: 11400000, guid: f1a3d133bd4e3514b80788a7a43d849d, type: 2}
@@ -291,7 +291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdd049c54e14ac644bec530d60d69440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  assets: {fileID: 897892474970742898}
+  assets: {fileID: 0}
   puzzleSettings: {fileID: 6255070487689229531}
 --- !u!114 &5838279100604240760
 MonoBehaviour:
@@ -323,7 +323,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c51fa3b7c9203e54aab1741cb2ca0830, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  references: {fileID: 897892474970742898}
+  references: {fileID: 0}
   lockStartingPieces: 1
   lockEndingPieces: 1
   oneTimeCompletion: 0

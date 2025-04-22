@@ -423,6 +423,7 @@ namespace CircuitPuzzle
         #endregion
 
         #region PRIVATE METHODS
+
         #region PUZZLE CREATION
         /// <summary>
         /// Creates the puzzle board by populating puzzle matrix with individual piece prefabs.
@@ -727,6 +728,7 @@ namespace CircuitPuzzle
             return renderers;
         }
         #endregion
+
         #endregion
     }
 }

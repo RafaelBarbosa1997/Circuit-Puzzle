@@ -1,152 +1,156 @@
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 namespace CircuitPuzzle
 {
+    /// <summary>
+    /// This is a custom editor for the PuzzleCreator script, which displays an interface to create a circuit puzzle in the inspector.
+    /// The interface includes a row and column selector, buttons to apply or cancel changes, and a button to clear the board.
+    /// It also includes a limiter option, which when enabled will limit the number of pieces that can be placed on the board.
+    /// </summary>
     [CustomEditor(typeof(PuzzleCreator))]
     public class PuzzleCreatorInspector : Editor
     {
         #region FIELDS
-        // Spacing.
-        private const int contentSpacing = 20;
-        private const int groupSpacing = 5;
+        private PuzzleCreator targetPuzzleCreator;
+        private InspectorAssetsSO inspectorAssets;
         #endregion
 
-        #region GUI
-        public override void OnInspectorGUI()
+        #region SETUP
+        /// <summary>
+        /// This method is called when an instance of PuzzleCreator is selected in the inspector.
+        /// </summary>
+        private void OnEnable()
         {
-            #region SETUP
             // Get selected PuzzleCreator script.
-            // Returns if casting fails.
-            PuzzleCreator creator = (PuzzleCreator)target;
-            if (creator == null)
+            targetPuzzleCreator = (PuzzleCreator)target;
+            if (targetPuzzleCreator == null)
             {
                 return;
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = creator.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
-            #endregion
+            inspectorAssets = targetPuzzleCreator.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
+        }
+        #endregion
 
-            // Bool to setup creation preview.
-            bool preview = true;
-
-            //// Initial undo warning.
-            //if (creator.UndoCleared == false || PrefabUtility.IsPartOfAnyPrefab(creator.gameObject))
-            //{
-            //    bool instantiate = EditorUtility.DisplayDialog("Circuit Puzzle", "To avoid errors, creating a circuit puzzle instance clears the undo history.\n" +
-            //        "If you wish to revert any changes in the scene, do so before creating a circuit puzzle.", "Continue", "Cancel");
-
-            //    if (instantiate)
-            //    {
-            //        Undo.ClearAll();
-            //    }
-
-            //    else
-            //    {
-            //        preview = false;
-            //        DestroyImmediate(creator.gameObject);
-            //    }
-
-            //    PrefabUtility.UnpackPrefabInstance(creator.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-
-            //    creator.UndoCleared = true;
-            //}
-
-            #region LAYOUT
-            // Board size settings header.
-            EditorGUILayout.LabelField("Board Size", inspectorAssets.DefaultHeader);
-
-            // Spacing //
-            GUILayout.Space(contentSpacing);
-
-            // ROWS SECTION.
-            // Field.
+        #region PRIVATE METHODS
+        /// <summary>
+        /// This method displays the left and right arrows for the user to select the number of rows or columns.
+        /// Either the selected number of rows or columns will be sent in as a parameter.
+        /// That value is changed when the arrow buttons are clicked, and then returned to change values in the inspector.
+        /// </summary>
+        /// <param name="axisSelectedValue"></param>
+        /// <returns></returns>
+        private int DisplaySizeSelectorArrows(int axisSelectedValue)
+        {
             EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Rows", inspectorAssets.DefaultLabel);
-                // If changes to the number of rows were made.
-                if(creator.SelectedRows != creator.SetRows)
-                {
-                    // Make field red to show that changes have been made.
-                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, inspectorAssets.ChangesPendingField);
-                }
 
-                 //If no changes were made.
-                else
-                {
-                    // Make field default color to show that no changes were made.
-                    creator.SelectedRows = EditorGUILayout.IntField(creator.SelectedRows, inspectorAssets.DefaultField);
-                }
-            EditorGUILayout.EndHorizontal();
-
-            // Spacing //
-            GUILayout.Space(groupSpacing);
-
-            // Arrow Buttons.
-            EditorGUILayout.BeginHorizontal();
-                // Left Arrow.
-                if (GUILayout.Button(inspectorAssets.LeftArrow))
-                {
-                    creator.SelectedRows--;
-                }
-
-                // Right Arrow.
-                if (GUILayout.Button(inspectorAssets.RightArrow))
-                {
-                    creator.SelectedRows++;
-                }
-            EditorGUILayout.EndHorizontal();
-
-            // Spacing //
-            GUILayout.Space(contentSpacing);
-
-            // COLUMNS SECTION.
-            // Field.
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Columns", inspectorAssets.DefaultLabel);
-            // If changes to the number of columns have been made.
-            if (creator.SetColumns != creator.SelectedColumns)
-            {
-                // Make field red to show that changes have been made.
-                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, inspectorAssets.ChangesPendingField);
-            }
-
-            // If no changes were made.
-            else
-            {
-                // Make field default color to show that no changes have been made.
-                creator.SelectedColumns = EditorGUILayout.IntField(creator.SelectedColumns, inspectorAssets.DefaultField);
-            }
-            EditorGUILayout.EndHorizontal();
-
-            // Spacing //
-            GUILayout.Space(groupSpacing);
-
-            // Arrow Buttons.
-            EditorGUILayout.BeginHorizontal();
             // Left Arrow.
             if (GUILayout.Button(inspectorAssets.LeftArrow))
             {
-                creator.SelectedColumns--;
+                axisSelectedValue--;
             }
 
             // Right Arrow.
             if (GUILayout.Button(inspectorAssets.RightArrow))
             {
-                creator.SelectedColumns++;
+                axisSelectedValue++;
             }
-            EditorGUILayout.EndHorizontal();            
+
+            EditorGUILayout.EndHorizontal();
+
+            return axisSelectedValue;
+        }
+
+        /// <summary>
+        /// This method compares the selected value of the rows or columns to the set value.
+        /// Returns the GUIStyle to be applies to the IntField according to whether the values are the same or not.
+        /// </summary>
+        /// <param name="fieldDesignation"></param>
+        /// <param name="axisSelectedValue"></param>
+        /// <param name="axisSetValue"></param>
+        /// <returns></returns>
+        private GUIStyle SetFieldStyle(int axisSelectedValue, int axisSetValue)
+        {
+            // If changes to the number of rows were made.
+            if (axisSelectedValue != axisSetValue)
+            {
+                // Make field red to show that changes have been made.
+                return inspectorAssets.ChangesPendingField;
+            }
+
+            //If no changes were made.
+            else
+            {
+                // Make field default color to show that no changes were made.
+                return inspectorAssets.DefaultField;
+            }
+        }
+        #endregion
+
+        #region GUI
+        public override void OnInspectorGUI()
+        {
+            // Board size header.
+            EditorGUILayout.LabelField("Board Size", inspectorAssets.DefaultHeader);
 
             // Spacing //
-            GUILayout.Space(contentSpacing);
+            GUILayout.Space(inspectorAssets.ContentSpacing);
 
+            #region PUZZLE SIZE SELECTOR
+
+            #region ROWS SECTION
+            EditorGUILayout.BeginHorizontal();
+
+            // Rows label.
+            EditorGUILayout.LabelField("Rows", inspectorAssets.DefaultLabel);
+
+            // Displays the IntField for the number of rows.
+            // The selected rows value is set according to what the user inputs into the IntField.
+            // The GUIStyle of the IntField is set according to whether the selected value is different from the puzzle's set value.
+            // This allows to user to know if they have unset changes made in the inspector.
+            targetPuzzleCreator.SelectedRows = EditorGUILayout.IntField(targetPuzzleCreator.SelectedRows, SetFieldStyle(targetPuzzleCreator.SelectedRows, targetPuzzleCreator.SetRows));
+
+            EditorGUILayout.EndHorizontal();
+
+            // Displays the left and right arrows for the user to select the number of rows.
+            // The selected rows value is set according to what the user clicks.
+            targetPuzzleCreator.SelectedRows = DisplaySizeSelectorArrows(targetPuzzleCreator.SelectedRows);
+            #endregion
+
+            // Spacing //
+            GUILayout.Space(inspectorAssets.ContentSpacing);
+
+            #region COLUMNS SECTION
+            EditorGUILayout.BeginHorizontal();
+
+            // Columns label.
+            EditorGUILayout.LabelField("Columns", inspectorAssets.DefaultLabel);
+
+            // Displays the IntField for the number of columns.
+            // Check rows section for full explanation.
+            targetPuzzleCreator.SelectedColumns = EditorGUILayout.IntField(targetPuzzleCreator.SelectedColumns, SetFieldStyle(targetPuzzleCreator.SelectedColumns, targetPuzzleCreator.SetColumns));
+
+            EditorGUILayout.EndHorizontal();
+
+            // Displays the left and right arrows for the user to select the number of columns.
+            // The selected columns value is set according to what the user clicks.
+            targetPuzzleCreator.SelectedColumns = DisplaySizeSelectorArrows(targetPuzzleCreator.SelectedColumns);
+            #endregion
+
+            #endregion
+
+            // Spacing //
+            GUILayout.Space(inspectorAssets.ContentSpacing);
+
+            #region APPLY AND CANCEL BUTTONS
             // APPLY AND CANCEL SECTION.
             // Change styles for the buttons depending on whether changes were made to row or column count.
             GUIStyle currentApply = new GUIStyle();
             GUIStyle currentCancel = new GUIStyle();
             // If changes were made.
-            if(creator.SelectedColumns != creator.SetColumns || creator.SelectedRows != creator.SetRows)
+            if(targetPuzzleCreator.SelectedColumns != targetPuzzleCreator.SetColumns || targetPuzzleCreator.SelectedRows != targetPuzzleCreator.SetRows)
             {
                 currentApply = inspectorAssets.GreenButton;
                 currentCancel = inspectorAssets.RedButton;
@@ -162,24 +166,26 @@ namespace CircuitPuzzle
                 // Apply button.
                 if (GUILayout.Button("Apply", currentApply))
                 {
-                    creator.ApplyChanges();
+                    targetPuzzleCreator.ApplyChanges();
                 }
 
                 // Spacing //
-                GUILayout.Space(groupSpacing);
+                GUILayout.Space(inspectorAssets.GroupSpacing);
 
                 // Cancel button.
                 if (GUILayout.Button("Cancel", currentCancel))
                 {
-                    creator.CancelChanges();
+                    targetPuzzleCreator.CancelChanges();
                 }
             EditorGUILayout.EndVertical();
+            #endregion
 
             // Spacing //
-            GUILayout.Space(contentSpacing);
+            GUILayout.Space(inspectorAssets.ContentSpacing);
 
+            #region CLEAR BOARD
             // Clear board button.
-            if(GUILayout.Button("Clear Board", inspectorAssets.DefaultButton))
+            if (GUILayout.Button("Clear Board", inspectorAssets.DefaultButton))
             {
                 // Create popup to confirm whether user wants to clear the board.
                 bool clearOutput = EditorUtility.DisplayDialog("Clear Board", "Are you sure you wanna clear the current board?", "Yes", "No");
@@ -187,36 +193,27 @@ namespace CircuitPuzzle
                 // If user clicked yes, clear the board.
                 if(clearOutput)
                 {
-                    creator.ClearBoard();
+                    targetPuzzleCreator.ClearBoard();
                 }
             }
-
-            // Preview Section.
-            if((creator.PreviewRows != creator.SelectedRows || creator.PreviewColumns != creator.SelectedColumns) && preview == true)
-            {
-                creator.GeneratePreview();
-            }
-
-            else if((creator.PreviewPieces.GetLength(0) > 0 && creator.PreviewPieces.GetLength(1) > 0) && (creator.SelectedColumns == creator.SetColumns && creator.SelectedRows == creator.SetRows))
-            {
-                creator.ResetPreview();
-            }
+            #endregion
 
             // Spacing //
-            GUILayout.Space(contentSpacing);
+            GUILayout.Space(inspectorAssets.ContentSpacing);
 
+            #region LIMITER
             // LIMITER SECTION.
             // Title.
             GUILayout.Label("Limiter", inspectorAssets.DefaultLabel);
 
             // Spacing //
-            GUILayout.Space(groupSpacing * 2);
+            GUILayout.Space(inspectorAssets.GroupSpacing);
 
             // Set button styles.
             GUIStyle enabledStyle;
             GUIStyle disabledStyle;
 
-            if (creator.IsLimited)
+            if (targetPuzzleCreator.IsLimited)
             {
                 enabledStyle = inspectorAssets.ActiveButton;
                 disabledStyle = inspectorAssets.InactiveButton;
@@ -236,25 +233,38 @@ namespace CircuitPuzzle
             // Enabled button.
             if (GUILayout.Button("Enabled", enabledStyle))
             {
-                creator.IsLimited = true;
+                targetPuzzleCreator.IsLimited = true;
             }
 
             // Spacing //
-            GUILayout.Space(groupSpacing * 2);
+            GUILayout.Space(inspectorAssets.GroupSpacing);
 
             // Disabled button.
             if (GUILayout.Button("Disabled", disabledStyle))
             {
-                creator.IsLimited = false;
+                targetPuzzleCreator.IsLimited = false;
             }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+            #endregion
+
+            #region Preview
+            // Preview Section.
+            if ((targetPuzzleCreator.PreviewRows != targetPuzzleCreator.SelectedRows || targetPuzzleCreator.PreviewColumns != targetPuzzleCreator.SelectedColumns))
+            {
+                targetPuzzleCreator.GeneratePreview();
+            }
+
+            else if ((targetPuzzleCreator.PreviewPieces.GetLength(0) > 0 && targetPuzzleCreator.PreviewPieces.GetLength(1) > 0) && (targetPuzzleCreator.SelectedColumns == targetPuzzleCreator.SetColumns && targetPuzzleCreator.SelectedRows == targetPuzzleCreator.SetRows))
+            {
+                targetPuzzleCreator.ResetPreview();
+            }
+            #endregion
 
             // Repaint so button hover states are reflected in real time.
             Repaint();
         }
-        #endregion
     }
     #endregion
 }

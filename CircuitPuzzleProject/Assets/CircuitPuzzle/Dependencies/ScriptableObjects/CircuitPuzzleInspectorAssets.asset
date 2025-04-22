@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6eb9f9b55d616924a869d012ab2616d6, type: 3}
   m_Name: CircuitPuzzleInspectorAssets
   m_EditorClassIdentifier: 
+  contentSpacing: 20
+  groupSpacing: 5
   leftArrow: {fileID: 2800000, guid: e1127875475368a44b61888973b331a1, type: 3}
   rightArrow: {fileID: 2800000, guid: d01c630481e15374aac5f15800fde9b1, type: 3}
   defaultHeader:
@@ -86,7 +88,7 @@ MonoBehaviour:
     m_Normal:
       m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
-      m_TextColor: {r: 0, g: 1, b: 0, a: 1}
+      m_TextColor: {r: 1, g: 0, b: 0, a: 1}
     m_Hover:
       m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
