@@ -22,7 +22,7 @@ namespace CircuitPuzzle
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = warning.GetComponent<SOAssetHolder>().InspectorAssets;
+            InspectorAssetsSO inspectorAssets = warning.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
 
             // Initialize variables to be used in warning message.
             string warningMessage = "";

@@ -163,7 +163,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get assetReferences object.
-            pieceAssets = GetComponent<SOAssetHolder>().PieceAssets;
+            pieceAssets = GetComponent<PuzzleAssetsHolder>().PieceAssets;
 
             // Get board tranform reference.
             boardTransform = transform.GetChild(0);
@@ -181,8 +181,8 @@ namespace CircuitPuzzle
             pieceMeshRenderer = blankPiece.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<MeshRenderer>();
 
             // Get material references.
-            greenBase = pieceAssets.GreenBase;
-            redBase = pieceAssets.RedBase;
+            greenBase = pieceAssets.GreenPreviewMat;
+            redBase = pieceAssets.RedPreviewMat;
 
             // If puzzle matrix has not been initialized, do so.
             if (puzzlePieces == null)

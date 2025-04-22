@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace CircuitPuzzle
 {
+    /// <summary>
+    /// This class serves to hold references to the assets and values used in the custom editors.
+    /// This includes GUIStyles and textures used in the editors' GUI layout.
+    /// </summary>
     [CreateAssetMenu(fileName = "CircuitPuzzleInspectorAssets", menuName = "Circuit Puzzle/Inspector Assets")]
     public class InspectorAssetsSO : ScriptableObject
     {

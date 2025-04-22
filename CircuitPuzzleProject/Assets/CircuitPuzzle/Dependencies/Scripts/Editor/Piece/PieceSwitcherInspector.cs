@@ -28,7 +28,7 @@ namespace CircuitPuzzle
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = switcher.GetComponent<SOAssetHolder>().InspectorAssets;
+            InspectorAssetsSO inspectorAssets = switcher.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
 
             // Set the active style on active button.
             SetActiveButton(switcher, inspectorAssets);

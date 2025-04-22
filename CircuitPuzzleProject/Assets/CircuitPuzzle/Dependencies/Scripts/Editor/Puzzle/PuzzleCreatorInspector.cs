@@ -26,7 +26,7 @@ namespace CircuitPuzzle
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = creator.GetComponent<SOAssetHolder>().InspectorAssets;
+            InspectorAssetsSO inspectorAssets = creator.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
             #endregion
 
             // Bool to setup creation preview.

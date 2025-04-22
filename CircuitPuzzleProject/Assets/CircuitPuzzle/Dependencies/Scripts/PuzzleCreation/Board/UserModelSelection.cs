@@ -9,7 +9,7 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // Reference to assets for inspector.
-        private SOAssetHolder assets;
+        private PuzzleAssetsHolder assets;
 
         // Reference to user models.
         private UserModels userModels;
@@ -24,14 +24,14 @@ namespace CircuitPuzzle
 
         #region PROPERTIES
         public bool UserModelsEnabled { get => userModelsEnabled; set => userModelsEnabled = value; }
-        public SOAssetHolder Assets { get => assets; private set => assets = value; }
+        public PuzzleAssetsHolder Assets { get => assets; private set => assets = value; }
         #endregion
 
         #region UNITY METHODS
         private void Awake()
         {
             // Get assets reference.
-            assets = GetComponent<SOAssetHolder>();
+            assets = GetComponent<PuzzleAssetsHolder>();
 
             // Get user models reference.
             userModels = GetComponent<UserModels>();

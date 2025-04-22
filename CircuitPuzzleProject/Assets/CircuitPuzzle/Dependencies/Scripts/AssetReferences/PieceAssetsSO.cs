@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace CircuitPuzzle
 {
+    /// <summary>
+    /// This class serves to hold references to the assets and values used in the puzzle's creation and in-game functionality.
+    /// </summary>
     [CreateAssetMenu(fileName = "CircuitPuzzlePieceAssets", menuName = "Circuit Puzzle/Piece Assets")]
     public class PieceAssetsSO : ScriptableObject
     {
@@ -59,9 +62,9 @@ namespace CircuitPuzzle
         // Materials.
         [Header("Materials")]
         [SerializeField]
-        private Material greenBase;
+        private Material greenPreviewMat;
         [SerializeField]
-        private Material redBase;
+        private Material redPreviewMat;
         #endregion
 
         #region PROPERTIES
@@ -83,8 +86,8 @@ namespace CircuitPuzzle
         public GameObject CornerPiecePowered { get => cornerPiecePowered; private set => cornerPiecePowered = value; }
         public GameObject StartPiecePowered { get => startPiecePowered; private set => startPiecePowered = value; }
         public GameObject EndPiecePowered { get => endPiecePowered; private set => endPiecePowered = value; }
-        public Material GreenBase { get => greenBase; private set => greenBase = value; }
-        public Material RedBase { get => redBase; private set => redBase = value; }
+        public Material GreenPreviewMat { get => greenPreviewMat; private set => greenPreviewMat = value; }
+        public Material RedPreviewMat { get => redPreviewMat; private set => redPreviewMat = value; }
         #endregion
     }
 }

@@ -24,7 +24,7 @@ namespace CircuitPuzzle
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = rotator.GetComponent<SOAssetHolder>().InspectorAssets;
+            InspectorAssetsSO inspectorAssets = rotator.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
 
             // Header.
             GUILayout.Label("Piece Rotation", inspectorAssets.DefaultHeader);

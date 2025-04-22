@@ -10,7 +10,7 @@ namespace CircuitPuzzle
         #region FIELDS
         // Reference to assets used in inspector.
         [SerializeField]
-        private SOAssetHolder assets;
+        private PuzzleAssetsHolder assets;
 
         // Reference to puzzle settings to get group mode.
         [SerializeField]
@@ -19,7 +19,7 @@ namespace CircuitPuzzle
 
         #region PROPERTIES
         public PuzzleSettings PuzzleSettings { get => puzzleSettings; private set => puzzleSettings = value; }
-        public SOAssetHolder Assets { get => assets; private set => assets = value; }
+        public PuzzleAssetsHolder Assets { get => assets; private set => assets = value; }
 
         #endregion
 
@@ -27,7 +27,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get references.
-            assets = GetComponent<SOAssetHolder>();
+            assets = GetComponent<PuzzleAssetsHolder>();
 
             // Get PuzzleSettings reference.
             Transform pieceParent = transform.parent;

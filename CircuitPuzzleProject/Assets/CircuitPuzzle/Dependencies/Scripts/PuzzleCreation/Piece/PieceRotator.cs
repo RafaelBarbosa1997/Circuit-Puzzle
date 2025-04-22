@@ -11,21 +11,21 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // Reference to inspector assets.
-        private SOAssetHolder references;
+        private PuzzleAssetsHolder references;
 
         // Value that stores the current orientation.
         private float pieceOrientation;
         #endregion
 
         #region PROPERTIES
-        public SOAssetHolder References { get => references; private set => references = value; }
+        public PuzzleAssetsHolder References { get => references; private set => references = value; }
         #endregion
 
         #region UNITY METHODS
         private void Awake()
         {
             // Get reference to inspector assets.
-            references = GetComponent<SOAssetHolder>();
+            references = GetComponent<PuzzleAssetsHolder>();
         }
         #endregion
 

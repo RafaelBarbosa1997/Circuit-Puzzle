@@ -12,7 +12,7 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // Reference holder.
-        private SOAssetHolder references;
+        private PuzzleAssetsHolder references;
 
         // Reference to user models.
         private UserModels userModels;
@@ -29,7 +29,7 @@ namespace CircuitPuzzle
         #endregion
 
         #region PROPERTIES
-        public SOAssetHolder References { get => references; private set => references = value; }
+        public PuzzleAssetsHolder References { get => references; private set => references = value; }
         public int Row { get => row; set => row = value; }
         public int Column { get => column; set => column = value; }
         public int TypeIndex { get => typeIndex; set => typeIndex = value; }
@@ -39,7 +39,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get asset references.
-            references = GetComponent<SOAssetHolder>();
+            references = GetComponent<PuzzleAssetsHolder>();
 
             // Get user model references.
             userModels = transform.parent.transform.parent.gameObject.GetComponent<UserModels>();

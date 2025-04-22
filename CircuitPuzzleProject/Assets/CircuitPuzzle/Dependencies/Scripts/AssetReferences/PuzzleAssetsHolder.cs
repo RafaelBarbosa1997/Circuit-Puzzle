@@ -1,10 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CircuitPuzzle
 {
-    public class SOAssetHolder : MonoBehaviour
+    /// <summary>
+    /// This class serves to hold references to the assets and values used in the puzzle.
+    /// This includes assets and values to be used in the custom editor, as well as for the actual puzzle's functionality.
+    /// Other scripts access this class through GetComponent().
+    /// </summary>
+    public class PuzzleAssetsHolder : MonoBehaviour
     {
         [SerializeField]
         private InspectorAssetsSO inspectorAssets;

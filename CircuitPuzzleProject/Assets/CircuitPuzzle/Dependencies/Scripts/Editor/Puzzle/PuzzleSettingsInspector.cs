@@ -25,7 +25,7 @@ namespace CircuitPuzzle
             }
 
             // Get reference to the inspector assets for custom editor.
-            InspectorAssetsSO inspectorAssets = settings.GetComponent<SOAssetHolder>().InspectorAssets;
+            InspectorAssetsSO inspectorAssets = settings.GetComponent<PuzzleAssetsHolder>().InspectorAssets;
 
             // TITLE.
             GUILayout.Label("Puzzle Settings", inspectorAssets.DefaultHeader);

@@ -16,7 +16,7 @@ namespace CircuitPuzzle
         private List<GameObject> customPoweredModels;
 
         // Asset reference.
-        private SOAssetHolder assetHolder;
+        private PuzzleAssetsHolder assetHolder;
 
         // Custom models reference.
         private UserModels userModels;
@@ -33,7 +33,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get assets.
-            assetHolder = GetComponent<SOAssetHolder>();
+            assetHolder = GetComponent<PuzzleAssetsHolder>();
             userModels = GetComponent<UserModels>();
 
             // Filler Gameobject.

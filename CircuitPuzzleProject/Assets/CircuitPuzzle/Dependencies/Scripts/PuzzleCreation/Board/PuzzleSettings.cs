@@ -10,7 +10,7 @@ namespace CircuitPuzzle
         #region FIELDS
         // Reference to assets used in inspector.
         [SerializeField]
-        private SOAssetHolder references;
+        private PuzzleAssetsHolder references;
 
         // Boolean that determines whether the rotation of starting pieces is blocked.
         [SerializeField]
@@ -33,7 +33,7 @@ namespace CircuitPuzzle
         private void Awake()
         {
             // Get references.
-            references = GetComponent<SOAssetHolder>();
+            references = GetComponent<PuzzleAssetsHolder>();
         }
         #endregion
 
@@ -41,7 +41,7 @@ namespace CircuitPuzzle
         public bool LockStartingPieces { get => lockStartingPieces;  set => lockStartingPieces = value; }
         public bool LockEndingPieces { get => lockEndingPieces;  set => lockEndingPieces = value; }
         public bool OneTimeCompletion { get => oneTimeCompletion;  set => oneTimeCompletion = value; }
-        public SOAssetHolder References { get => references; private set => references = value; }
+        public PuzzleAssetsHolder References { get => references; private set => references = value; }
         public bool IsGrouped { get => isGrouped; set => isGrouped = value; }
         #endregion
     }
