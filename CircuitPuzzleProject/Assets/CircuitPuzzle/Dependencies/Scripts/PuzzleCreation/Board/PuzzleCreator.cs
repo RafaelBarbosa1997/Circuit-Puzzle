@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 
 namespace CircuitPuzzle
 {
@@ -13,33 +9,24 @@ namespace CircuitPuzzle
     public class PuzzleCreator : MonoBehaviour, ISerializationCallbackReceiver
     {
         #region FIELDS
-        // References to assets to be used for instantiating the puzzle.
-        private PieceAssetsSO pieceAssets;
-
-        // Reference to transform where piece prefabs will be instantiated.
-        private Transform boardTransform;
-
-        // The number of rows and columns the user currently has inputted in the inspector.
+        // The number of rows and columns the user currently has inputted in the inspector, in the custom editor.
         [SerializeField, HideInInspector]
         private int selectedRows;
         [SerializeField, HideInInspector]
         private int selectedColumns;
-
         // The number of rows and columns that the last created puzzle iteration contains.
         [SerializeField, HideInInspector]
         private int setRows;
         [SerializeField, HideInInspector]
         private int setColumns;
-
-        // Reference to the puzzle piece prefab.
-        private GameObject blankPiece;
-
-        // Matrix that contains the gameobject prefab of each individual puzzle piece.
-        private GameObject[,] puzzlePieces;
-
-        // List the matrix will be converted to so it can be serialized.
+        // Integers to keep track of whether preview rows and columns need to be added or removed.
         [SerializeField, HideInInspector]
-        private List<PuzzlePackage<GameObject>> serializablePieces;
+        private int previewRows;
+        [SerializeField, HideInInspector]
+        private int previewColumns;
+        // Boolean to limit the number of pieces allowed for rows and columns.
+        [SerializeField, HideInInspector]
+        private bool isLimited = true;
 
         // Struct with info to convert the matrix to and from the list.
         [System.Serializable]
@@ -57,59 +44,32 @@ namespace CircuitPuzzle
             }
         }
 
-        // References to the MeshRenderer and SpriteRenderer rendering the puzzle piece's model and sprite respectively.
-        private MeshRenderer pieceMeshRenderer;
-
-        // Boolean to limit the number of pieces allowed for rows and columns.
+        // List the matrix will be converted to so it can be serialized.
         [SerializeField, HideInInspector]
-        private bool isLimited = true;
-
-        // Boolean that determines whether the creation of the puzzle was cleared from undo stack.
+        private List<PuzzlePackage<GameObject>> serializablePieces;
+        // List containing the preview matrix.
         [SerializeField, HideInInspector]
-        private bool undoCleared;
+        private List<PuzzlePackage<GameObject>> serializablePreview;
 
-        // Integers to keep track of whether preview rows and columns need to be added or removed.
-        [SerializeField, HideInInspector]
-        private int previewRows;
-        [SerializeField, HideInInspector]
-        private int previewColumns;
-
+        // Reference to transform that will serve as parent to instantiated puzzle pieces.
+        private Transform boardTransform;
+        // Matrix that contains the reference to the gameobject prefab of each individual puzzle piece in the puzzle.
+        // The piece's position in the matrix is the same as its position in the puzzle.
+        private GameObject[,] puzzlePieces;
         // Matrix containing preview pieces.
         private GameObject[,] previewPieces;
-
-        // Reference to preview piece prefabs.
-        private GameObject previewPiece;
-
+        // References to the MeshRenderer and SpriteRenderer rendering the puzzle piece's model and sprite respectively.
+        private MeshRenderer pieceMeshRenderer;
         // Transform where preview pieces will be instantiated.
         private Transform previewTransform;
 
-        // Materials for preview pieces.
-        private Material greenBase;
-        private Material redBase;
-
-        // List containing the preview matrix.
-        [SerializeField, HideInInspector]
-        private List<PreviewPackage<GameObject>> serializablePreview;
-
-        // Struct with info to convert the preview matrix to and from the list.
-        [System.Serializable]
-        private struct PreviewPackage<TElement>
-        {
-            public int Row;
-            public int Column;
-            public TElement Element;
-
-            public PreviewPackage(int row, int column, TElement element)
-            {
-                Row = row;
-                Column = column;
-                Element = element;
-            }
-        }
+        // This holds references to the prefabs used to instantiate puzzle pieces.
+        private PieceAssetsSO pieceAssets;
         #endregion
 
         #region PROPERTIES
-        // Assures that the number of rows does does not go below 0 or above 100.
+        // Assures that the number of rows does does not go below 0.
+        // If the puzzle's limiter is enabled, it will not go above 20.
         public int SelectedRows
         {
             get { return selectedRows; }
@@ -129,6 +89,7 @@ namespace CircuitPuzzle
                 }
             }
         }
+
         // Same as the property for rows.
         public int SelectedColumns
         {
@@ -153,7 +114,6 @@ namespace CircuitPuzzle
         public int SetColumns { get => setColumns; private set => setColumns = value; }
         public bool IsLimited { get => isLimited; set => isLimited = value; }
         public GameObject[,] PuzzlePieces { get => puzzlePieces; set => puzzlePieces = value; }
-        public bool UndoCleared { get => undoCleared; set => undoCleared = value; }
         public int PreviewRows { get => previewRows; private set => previewRows = value; }
         public int PreviewColumns { get => previewColumns; private set => previewColumns = value; }
         public GameObject[,] PreviewPieces { get => previewPieces; private set => previewPieces = value; }
@@ -171,18 +131,8 @@ namespace CircuitPuzzle
             // Get preview transform reference.
             previewTransform = transform.GetChild(1);
 
-            // Get piece prefab from assets.
-            blankPiece = pieceAssets.BlankPiece;
-
-            // Preview pieces prefab references.
-            previewPiece = pieceAssets.PreviewPiece;
-
             // Get MeshRenderer and SpriteRenderer references.
-            pieceMeshRenderer = blankPiece.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<MeshRenderer>();
-
-            // Get material references.
-            greenBase = pieceAssets.GreenPreviewMat;
-            redBase = pieceAssets.RedPreviewMat;
+            pieceMeshRenderer = pieceAssets.BlankPiece.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<MeshRenderer>();
 
             // If puzzle matrix has not been initialized, do so.
             if (puzzlePieces == null)
@@ -204,41 +154,43 @@ namespace CircuitPuzzle
                 return;
             }
 
-            // Changes will only be applied if user changed row or column input.
-            if (selectedColumns != setColumns || selectedRows != setRows)
+            // If no changes were made compared to previous puzzle iteration, do nothing.
+            if (selectedColumns == setColumns && selectedRows == setRows)
             {
-                // If no puzzle iteration exists, create a new puzzle.
-                if (SetRows == 0 || setColumns == 0)
-                {
-                    puzzlePieces = CreatePuzzle();
-                }
-
-                // Else, modify the current iteration according to new row and column input.
-                else
-                {
-                    // Container for previous puzzle iteration, will be used to delete removed rows or columns.
-                    GameObject[,] oldPieces = puzzlePieces;
-
-                    // Create a new puzzle iteration, keeping unchanged pieces from previous iteration.
-                    puzzlePieces = CreatePuzzle(oldPieces);
-
-                    // Delete pieces from previous iteration that were removed in new iteration.
-                    DeleteRemovedPieces(oldPieces);
-                }
-
-                // Set the local positions of the puzzle pieces inside the puzzle matrix.
-                SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
-
-                // Adjust setRows and setColumns value to match changes.
-                setRows = selectedRows;
-                setColumns = selectedColumns;
-
-                // Delete preview after creating new iteration.
-                ResetPreview();
-
-                // Mark scene as dirty so hierarchy changes can be saved.
-                EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+                return;
             }
+
+            // If no puzzle iteration exists, create a new puzzle.
+            if (SetRows == 0 || setColumns == 0)
+            {
+                puzzlePieces = CreatePuzzle();
+            }
+
+            // Else, modify the current iteration according to new row and column input.
+            else
+            {
+                // Container for previous puzzle iteration, will be used to delete removed rows or columns.
+                GameObject[,] oldPieces = puzzlePieces;
+
+                // Create a new puzzle iteration, keeping unchanged pieces from previous iteration.
+                puzzlePieces = CreatePuzzle(oldPieces);
+
+                // Delete pieces from previous iteration that were removed in new iteration.
+                DeleteRemovedPieces(oldPieces);
+            }
+
+            // Set the local positions of the puzzle pieces inside the puzzle matrix.
+            SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
+
+            // Adjust setRows and setColumns value to match changes.
+            setRows = selectedRows;
+            setColumns = selectedColumns;
+
+            // Delete preview after creating new iteration.
+            ResetPreview();
+
+            // Mark scene as dirty so hierarchy changes can be saved.
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
 
         /// <summary>
@@ -253,15 +205,23 @@ namespace CircuitPuzzle
             }
 
             // Function will only run if user made changes to row or column inputs.
-            // Will also only run if a puzzle iteration already exists.
-            if ((selectedColumns != setColumns || selectedRows != setRows) && setColumns != 0 && SetRows != 0)
+            if (selectedRows == setRows && selectedColumns == setColumns)
             {
-                selectedRows = setRows;
-                selectedColumns = setColumns;
-
-                // Mark scene as dirty so hierarchy changes can be saved.
-                EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+                return;
             }
+
+            // Will also only run if a puzzle iteration already exists.
+            if (setRows == 0 || setColumns == 0)
+            {
+                return;
+            }
+
+            // Reset selected rows and columns to match the last puzzle iteration.
+            selectedRows = setRows;
+            selectedColumns = setColumns;
+
+            // Mark scene as dirty so hierarchy changes can be saved.
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
 
         /// <summary>
@@ -300,7 +260,7 @@ namespace CircuitPuzzle
                 return;
             }
 
-            // Set previous row and column.
+            // Set preview row and column.
             previewRows = selectedRows;
             previewColumns = selectedColumns;
 
@@ -358,70 +318,6 @@ namespace CircuitPuzzle
         }
         #endregion
 
-        #region SERIALIZATION
-        /// <summary>
-        /// Converts the puzzle matrix to a list and serializes it.
-        /// Does the same with the preview matrix.
-        /// </summary>
-        public void OnBeforeSerialize()
-        {
-            // Puzzle matrix.
-            serializablePieces = new List<PuzzlePackage<GameObject>>();
-            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
-            {
-                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
-                {
-                    serializablePieces.Add(new PuzzlePackage<GameObject>(i, j, puzzlePieces[i, j]));
-                }
-            }
-
-            // Preview matrix.
-            if(previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
-            {
-                serializablePreview = new List<PreviewPackage<GameObject>>();
-                for (int i = 0; i < previewPieces.GetLength(0); i++)
-                {
-                    for (int j = 0; j < previewPieces.GetLength(1); j++)
-                    {
-                        serializablePreview.Add(new PreviewPackage<GameObject>(i, j, previewPieces[i, j]));
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Converts the serialized list back into the puzzle matrix.
-        /// Does the same with the preview matrix.
-        /// </summary>
-        public void OnAfterDeserialize()
-        {
-            // Puzzle matrix.
-            puzzlePieces = new GameObject[setRows, setColumns];
-
-            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
-            {
-                foreach (var package in serializablePieces)
-                {
-                    puzzlePieces[package.Row, package.Column] = package.Element;
-                }
-            }
-
-            // Preview matrix.
-            int matrixRows = GetBiggerValue(selectedRows, SetRows);
-            int matrixColumns = GetBiggerValue(selectedColumns, SetColumns);
-
-            previewPieces = new GameObject[matrixRows, matrixColumns];
-
-            if (previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
-            {
-                foreach (var package in serializablePreview)
-                {
-                    previewPieces[package.Row, package.Column] = package.Element;
-                }
-            }
-        }
-        #endregion
-
         #region PRIVATE METHODS
 
         #region PUZZLE CREATION
@@ -441,7 +337,7 @@ namespace CircuitPuzzle
                 for (int j = 0; j < pieces.GetLength(1); j++)
                 {
                     // Fill matrix with blank piece prefabs.
-                    pieces[i, j] = Instantiate(blankPiece, boardTransform);
+                    pieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
 
                     // Feed the piece it's own position in the matrix so it can be switched later.
                     SetPieceIndex(pieces[i, j], i, j);
@@ -480,7 +376,7 @@ namespace CircuitPuzzle
                     else
                     {
                         // New instance is created.
-                        newPieces[i, j] = Instantiate(blankPiece, boardTransform);
+                        newPieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
 
                         // Set piece index.
                         SetPieceIndex(newPieces[i, j], i, j);
@@ -643,7 +539,7 @@ namespace CircuitPuzzle
             {
                 for (int j = 0; j < previewPieces.GetLength(1); j++)
                 {
-                    previewPieces[i, j] = Instantiate(previewPiece, previewTransform);
+                    previewPieces[i, j] = Instantiate(pieceAssets.PreviewPiece, previewTransform);
                 }
             }
         }
@@ -692,14 +588,14 @@ namespace CircuitPuzzle
                     if ((i >= puzzlePieces.GetLength(0) && j <= selectedColumns - 1) || (j >= puzzlePieces.GetLength(1) && i <= selectedRows - 1))
                     {
                         MeshRenderer[] renderers = GetPreviewMeshes(previewPieces[i, j]);
-                        renderers[0].material = greenBase;
+                        renderers[0].material = pieceAssets.GreenPreviewMat;
                     }
 
                     // If pieces are to be removed.
                     else if ((i >= selectedRows && i < setRows) || (j >= selectedColumns && j < setColumns))
                     {
                         MeshRenderer[] renderers = GetPreviewMeshes(previewPieces[i, j]);
-                        renderers[0].material = redBase;
+                        renderers[0].material = pieceAssets.RedPreviewMat;
                     }
 
                     // If pieces are unnafected.
@@ -729,6 +625,70 @@ namespace CircuitPuzzle
         }
         #endregion
 
+        #endregion
+
+        #region SERIALIZATION
+        /// <summary>
+        /// Converts the puzzle matrix to a list and serializes it.
+        /// Does the same with the preview matrix.
+        /// </summary>
+        public void OnBeforeSerialize()
+        {
+            // Puzzle matrix.
+            serializablePieces = new List<PuzzlePackage<GameObject>>();
+            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
+            {
+                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
+                {
+                    serializablePieces.Add(new PuzzlePackage<GameObject>(i, j, puzzlePieces[i, j]));
+                }
+            }
+
+            // Preview matrix.
+            if (previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
+            {
+                serializablePreview = new List<PuzzlePackage<GameObject>>();
+                for (int i = 0; i < previewPieces.GetLength(0); i++)
+                {
+                    for (int j = 0; j < previewPieces.GetLength(1); j++)
+                    {
+                        serializablePreview.Add(new PuzzlePackage<GameObject>(i, j, previewPieces[i, j]));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts the serialized list back into the puzzle matrix.
+        /// Does the same with the preview matrix.
+        /// </summary>
+        public void OnAfterDeserialize()
+        {
+            // Puzzle matrix.
+            puzzlePieces = new GameObject[setRows, setColumns];
+
+            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            {
+                foreach (var package in serializablePieces)
+                {
+                    puzzlePieces[package.Row, package.Column] = package.Element;
+                }
+            }
+
+            // Preview matrix.
+            int matrixRows = GetBiggerValue(selectedRows, SetRows);
+            int matrixColumns = GetBiggerValue(selectedColumns, SetColumns);
+
+            previewPieces = new GameObject[matrixRows, matrixColumns];
+
+            if (previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
+            {
+                foreach (var package in serializablePreview)
+                {
+                    previewPieces[package.Row, package.Column] = package.Element;
+                }
+            }
+        }
         #endregion
     }
 }

@@ -30,5 +30,5 @@ MonoBehaviour:
   cornerPiecePowered: {fileID: 1151425098125891860, guid: 1759c282b03ccf14c830770560de10a8, type: 3}
   startPiecePowered: {fileID: 3286372725548346124, guid: 1b5d9cc3eabd7764783b5422c4d7a056, type: 3}
   endPiecePowered: {fileID: 6432809504144362857, guid: 349a8530c7aeb80408c624d447034796, type: 3}
-  greenBase: {fileID: 2100000, guid: ec63588ee061a9e40b398582a417e287, type: 2}
-  redBase: {fileID: 2100000, guid: 6ea66186d8bf9674e82119840e7dc410, type: 2}
+  greenPreviewMat: {fileID: 2100000, guid: ec63588ee061a9e40b398582a417e287, type: 2}
+  redPreviewMat: {fileID: 2100000, guid: 6ea66186d8bf9674e82119840e7dc410, type: 2}
