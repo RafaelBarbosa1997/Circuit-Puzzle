@@ -19,16 +19,11 @@ namespace CircuitPuzzle
         private int setRows;
         [SerializeField, HideInInspector]
         private int setColumns;
-        // Integers to keep track of whether preview rows and columns need to be added or removed.
-        [SerializeField, HideInInspector]
-        private int previewRows;
-        [SerializeField, HideInInspector]
-        private int previewColumns;
         // Boolean to limit the number of pieces allowed for rows and columns.
         [SerializeField, HideInInspector]
-        private bool isLimited = true;
+        private bool isLimited;
 
-        // Struct with info to convert the matrix to and from the list.
+        // Struct with data to convert the puzzle piece matrix to and from a list, so it can be serialized.
         [System.Serializable]
         private struct PuzzlePackage<TElement>
         {
@@ -47,9 +42,6 @@ namespace CircuitPuzzle
         // List the matrix will be converted to so it can be serialized.
         [SerializeField, HideInInspector]
         private List<PuzzlePackage<GameObject>> serializablePieces;
-        // List containing the preview matrix.
-        [SerializeField, HideInInspector]
-        private List<PuzzlePackage<GameObject>> serializablePreview;
 
         // Reference to transform that will serve as parent to instantiated puzzle pieces.
         private Transform boardTransform;
@@ -58,8 +50,6 @@ namespace CircuitPuzzle
         private GameObject[,] puzzlePieces;
         // Matrix containing preview pieces.
         private GameObject[,] previewPieces;
-        // References to the MeshRenderer and SpriteRenderer rendering the puzzle piece's model and sprite respectively.
-        private MeshRenderer pieceMeshRenderer;
         // Transform where preview pieces will be instantiated.
         private Transform previewTransform;
 
@@ -114,14 +104,15 @@ namespace CircuitPuzzle
         public int SetColumns { get => setColumns; private set => setColumns = value; }
         public bool IsLimited { get => isLimited; set => isLimited = value; }
         public GameObject[,] PuzzlePieces { get => puzzlePieces; set => puzzlePieces = value; }
-        public int PreviewRows { get => previewRows; private set => previewRows = value; }
-        public int PreviewColumns { get => previewColumns; private set => previewColumns = value; }
         public GameObject[,] PreviewPieces { get => previewPieces; private set => previewPieces = value; }
         #endregion
 
         #region UNITY METHODS
         private void Awake()
         {
+            // Puzzle defaults to limited pieces, to prevent errors or crashes.
+            isLimited = true;
+
             // Get assetReferences object.
             pieceAssets = GetComponent<PuzzleAssetsHolder>().PieceAssets;
 
@@ -131,190 +122,14 @@ namespace CircuitPuzzle
             // Get preview transform reference.
             previewTransform = transform.GetChild(1);
 
-            // Get MeshRenderer and SpriteRenderer references.
-            pieceMeshRenderer = pieceAssets.BlankPiece.transform.GetChild(0).transform.GetChild(0).transform.GetChild(0).GetComponent<MeshRenderer>();
-
             // If puzzle matrix has not been initialized, do so.
             if (puzzlePieces == null)
             {
                 puzzlePieces = new GameObject[0, 0];
             }
-        }
-        #endregion
 
-        #region PUBLIC METHODS
-        /// <summary>
-        /// Applies changes to the puzzle according to the current row and column input.
-        /// </summary>
-        public void ApplyChanges()
-        {
-            // We only want this to run in edit mode.
-            if (Application.isPlaying)
-            {
-                return;
-            }
-
-            // If no changes were made compared to previous puzzle iteration, do nothing.
-            if (selectedColumns == setColumns && selectedRows == setRows)
-            {
-                return;
-            }
-
-            // If no puzzle iteration exists, create a new puzzle.
-            if (SetRows == 0 || setColumns == 0)
-            {
-                puzzlePieces = CreatePuzzle();
-            }
-
-            // Else, modify the current iteration according to new row and column input.
-            else
-            {
-                // Container for previous puzzle iteration, will be used to delete removed rows or columns.
-                GameObject[,] oldPieces = puzzlePieces;
-
-                // Create a new puzzle iteration, keeping unchanged pieces from previous iteration.
-                puzzlePieces = CreatePuzzle(oldPieces);
-
-                // Delete pieces from previous iteration that were removed in new iteration.
-                DeleteRemovedPieces(oldPieces);
-            }
-
-            // Set the local positions of the puzzle pieces inside the puzzle matrix.
-            SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
-
-            // Adjust setRows and setColumns value to match changes.
-            setRows = selectedRows;
-            setColumns = selectedColumns;
-
-            // Delete preview after creating new iteration.
-            ResetPreview();
-
-            // Mark scene as dirty so hierarchy changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        }
-
-        /// <summary>
-        /// Cancels the changes made to row and column inputs.
-        /// </summary>
-        public void CancelChanges()
-        {
-            // We only want this to run in edit mode.
-            if (Application.isPlaying)
-            {
-                return;
-            }
-
-            // Function will only run if user made changes to row or column inputs.
-            if (selectedRows == setRows && selectedColumns == setColumns)
-            {
-                return;
-            }
-
-            // Will also only run if a puzzle iteration already exists.
-            if (setRows == 0 || setColumns == 0)
-            {
-                return;
-            }
-
-            // Reset selected rows and columns to match the last puzzle iteration.
-            selectedRows = setRows;
-            selectedColumns = setColumns;
-
-            // Mark scene as dirty so hierarchy changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        }
-
-        /// <summary>
-        /// Clears the current board, deleting all pieces.
-        /// </summary>
-        public void ClearBoard()
-        {
-            // We only want this to run in edit mode.
-            if (Application.isPlaying)
-            {
-                return;
-            }
-
-            // Delete the board.
-            DeleteBoard();
-
-            // Reset the setRows and setColumns variables.
-            setRows = 0;
-            SetColumns = 0;
-
-            // Generate preview after clearing board.
+            // Generate the initial preview during instantiation.
             GeneratePreview();
-
-            // Mark scene as dirty so changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
-        }
-
-        /// <summary>
-        /// Generates the preview for the next puzzle instance according to selected row and column input.
-        /// </summary>
-        public void GeneratePreview()
-        {
-            // We only want this to run in edit mode.
-            if (Application.isPlaying)
-            {
-                return;
-            }
-
-            // Set preview row and column.
-            previewRows = selectedRows;
-            previewColumns = selectedColumns;
-
-            // If a preview already exists, delete it.
-            if (previewPieces != null)
-            {
-                DeletePreviewPieces();
-            }
-
-            // Get size for preview matrix.
-            int matrixRows = GetBiggerValue(selectedRows, SetRows);
-            int matrixColumns = GetBiggerValue(selectedColumns, setColumns);
-
-
-            // Initialize matrix that will contain new preview.
-            previewPieces = new GameObject[matrixRows, matrixColumns];
-
-            // Populate matrix.
-            CreatePreviewPieces();
-
-            // Set preview position.
-            SetPiecePositions(previewPieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
-
-            // Set piece positions to match preview.
-            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
-            {
-                MatchPuzzleToPreview();
-
-                SetPreviewMaterials();
-            }
-
-            // Mark scene as dirty.
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-        }
-
-        /// <summary>
-        /// Deletes all preview piece gameobjects and sets the matrix that contained them as null.
-        /// </summary>
-        public void ResetPreview()
-        {
-            // We only want this to run in edit mode.
-            if (Application.isPlaying)
-            {
-                return;
-            }
-
-            // Delete preview piece gameobjects.
-            DeletePreviewPieces();
-
-            // Set preview matrix to null.
-            previewPieces = new GameObject[0, 0];
-
-            // Mark scene as dirty.
-            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         }
         #endregion
 
@@ -422,74 +237,6 @@ namespace CircuitPuzzle
         }
 
         /// <summary>
-        /// Sets the position of each individual piece prefab on the board.
-        /// Piece positions are properly aligned according to row and column input, as well as the size of its model or sprite.
-        /// </summary>
-        /// <param name="pieces"></param>
-        private void SetPiecePositions(GameObject[,] pieces, int rows, int columns)
-        {
-            // Value that will be used to increment the position of each puzzle piece.
-            float increment = 0;
-
-            // Set the increment according to the model's width.
-            increment = pieceMeshRenderer.bounds.size.x;
-
-            // Get starting position for the X axis.
-            float startingPositionX = 0;
-            // If X axis elements are even.
-            if (columns % 2 == 0)
-            {
-                startingPositionX += increment / 2;
-                startingPositionX -= increment * ((columns) / 2);
-            }
-            // If X axis elements are odd.
-            else
-            {
-                startingPositionX -= increment * ((columns - 1) / 2);
-            }
-
-            // Get starting position for the Y axis.
-            float startingPositionY = 0;
-            // If Y axis elements are even.
-            if (rows % 2 == 0)
-            {
-                startingPositionY += increment / 2;
-                startingPositionY -= increment * (rows / 2);
-            }
-            // If Y axis elements are odd.
-            else
-            {
-                startingPositionY -= increment * ((rows - 1) / 2);
-            }
-
-            // Loop through matrix.
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < columns; j++)
-                {
-                    // Gets the X and Y position for the current puzzle piece.
-                    float positionX = startingPositionX + (increment * j);
-                    float positionY = startingPositionY + (increment * i);
-
-                    // Sets the piece's position.
-                    pieces[i, j].transform.localPosition = new Vector3(positionX, positionY, 0);
-                    // Sets the piece's name the same as its index in the matrix.
-                    pieces[i, j].name = "[" + i + ", " + j + "]";
-
-                    if (j + 1 == pieces.GetLength(1))
-                    {
-                        break;
-                    }
-                }
-
-                if (i + 1 == pieces.GetLength(0))
-                {
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
         /// Deletes all the pieces from the puzzle matrix and makes it into a an empty matrix of 0 length.
         /// </summary>
         /// <param name="pieces"></param>
@@ -510,45 +257,100 @@ namespace CircuitPuzzle
         }
         #endregion
 
-        #region PREVIEW
+        #region PREVIEW CREATION
         /// <summary>
-        /// Takes in 2 values and returns the biggest one.
+        /// Generates a preview of the puzzle pieces according to the selected rows and columns.
+        /// This method is called when a preview instance does not exist yet.
         /// </summary>
-        /// <param name="valueOne"></param>
-        /// <param name="valueTwo"></param>
-        /// <returns></returns>
-        private int GetBiggerValue(int valueOne, int valueTwo)
+        private void GeneratePreview()
         {
-            if (valueOne > valueTwo)
-            {
-                return valueOne;
-            }
+            int previewRowSize = Mathf.Max(selectedRows, setRows);
+            int previewColumnSize = Mathf.Max(selectedColumns, setColumns);
 
-            else
-            {
-                return valueTwo;
-            }
-        }
+            // Since this is a fresh preview, previewPieces needs to be initialized.
+            previewPieces = new GameObject[previewRowSize, previewColumnSize];
 
-        /// <summary>
-        /// Populates the preview matrix by instantiating preview piece prefabs into it.
-        /// </summary>
-        private void CreatePreviewPieces()
-        {
-            for (int i = 0; i < previewPieces.GetLength(0); i++)
+            // Loop through the selected rows and columns to instantiate preview pieces.
+            for (int i = 0; i < previewRowSize; i++)
             {
-                for (int j = 0; j < previewPieces.GetLength(1); j++)
+                for (int j = 0; j < previewColumnSize; j++)
                 {
                     previewPieces[i, j] = Instantiate(pieceAssets.PreviewPiece, previewTransform);
                 }
             }
+
+            // Set the local positions of the preview pieces to display how puzzle will look.
+            SetPiecePositions(previewPieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
+
+            // If a puzzle instance exists when preview is generated, its pieces will be aligned to the preview pieces.
+            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            {
+                MatchPuzzleToPreview();
+            }
         }
 
         /// <summary>
-        /// Deletes the preview piece prefabs from the preview matrix.
+        /// Modifies the preview pieces according to the selected rows and columns.
+        /// This method is called when a preview instance already exists.
         /// </summary>
-        private void DeletePreviewPieces()
+        private void ModifyPreview()
         {
+            // We store the old preview pieces in a temporary variable, to determine how to handle the new preview.
+            GameObject[,] oldPreview = previewPieces;
+
+            int previewRowSize = Mathf.Max(selectedRows, SetRows);
+            int previewColumnSize = Mathf.Max(selectedColumns, setColumns);
+
+            // Reinitialize the preview matrix to the new selected rows and columns.
+            previewPieces = new GameObject[previewRowSize, previewColumnSize];
+
+            // Loop through the selected rows and columns to instantiate preview pieces.
+            for (int i = 0; i < previewRowSize; i++)
+            {
+                for (int j = 0; j < previewColumnSize; j++)
+                {
+                    // If the old preview has the piece, maintain it, removing the need to instantiate it again.
+                    if (i < oldPreview.GetLength(0) && j < oldPreview.GetLength(1))
+                    {
+                        previewPieces[i, j] = oldPreview[i, j];
+                    }
+
+                    // If the new preview needs a piece where it didn't exist, instantiate it.
+                    else
+                    {
+                        previewPieces[i, j] = Instantiate(pieceAssets.PreviewPiece, previewTransform);
+                    }
+                }
+            }
+
+            // Destroy pieces that are no longer part of the new preview.
+            for (int i = 0; i < oldPreview.GetLength(0); i++)
+            {
+                for (int j = 0; j < oldPreview.GetLength(1); j++)
+                {
+                    if (i >= previewRowSize || j >= previewColumnSize)
+                    {
+                        DestroyImmediate(oldPreview[i, j]);
+                    }
+                }
+            }
+
+            // Set positions for the updated preview pieces.
+            SetPiecePositions(previewPieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
+
+            // If a puzzle instance exists when preview is generated, its pieces will be aligned to the preview pieces.
+            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            {
+                MatchPuzzleToPreview();
+            }
+        }
+
+        /// <summary>
+        /// Deletes the existing preview pieces.
+        /// </summary>
+        private void DeletePreview()
+        {
+            // Loop through the preview matrix to destroy all preview pieces.
             for (int i = 0; i < previewPieces.GetLength(0); i++)
             {
                 for (int j = 0; j < previewPieces.GetLength(1); j++)
@@ -556,81 +358,279 @@ namespace CircuitPuzzle
                     DestroyImmediate(previewPieces[i, j]);
                 }
             }
+
+            // Reset the preview matrix.
+            previewPieces = null;
         }
 
         /// <summary>
-        /// Adjusts this puzzle iteration piece positions to match the positions of the preview pieces.
+        /// Makes the current puzzle instance's piece positions match up with the preview pieces, reflecting how the next instance will look.
+        /// Also changes the preview piece's material colors to reflect changes that current row and columns input will inflict.
         /// </summary>
         private void MatchPuzzleToPreview()
         {
-            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
-            {
-                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
-                {
-                    puzzlePieces[i, j].transform.localPosition = previewPieces[i, j].transform.localPosition;
-                }
-            }
-        }
+            // The puzzle instance's piece positions are set to align with the preview pieces.
+            SetPiecePositions(puzzlePieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
 
-        /// <summary>
-        /// Sets the material of the preview pieces according to what will happen in the next puzzle iteration.
-        /// Pieces that are to be added will be set to green.
-        /// Pieces that are to be removed will be set to red.
-        /// Pieces that are not affected will have their meshes disabled.
-        /// </summary>
-        private void SetPreviewMaterials()
-        {
+            // Loop through preview pieces, and set materials to reflect changes.
             for (int i = 0; i < previewPieces.GetLength(0); i++)
             {
                 for (int j = 0; j < previewPieces.GetLength(1); j++)
                 {
-                    // If pieces are to be added
-                    if ((i >= puzzlePieces.GetLength(0) && j <= selectedColumns - 1) || (j >= puzzlePieces.GetLength(1) && i <= selectedRows - 1))
+                    // These pieces are of higher or equal index than the selected input, but lower than currently set input, so they will be removed in the next instance.
+                    if ((i >= selectedRows && i < setRows) || (j >= selectedColumns && j < setColumns))
                     {
-                        MeshRenderer[] renderers = GetPreviewMeshes(previewPieces[i, j]);
-                        renderers[0].material = pieceAssets.GreenPreviewMat;
+                        previewPieces[i, j].GetComponent<PreviewPieceMeshHandler>().SetRedPreviewMaterial();
                     }
 
-                    // If pieces are to be removed.
-                    else if ((i >= selectedRows && i < setRows) || (j >= selectedColumns && j < setColumns))
+                    // These pieces are of higher index than selected and set input, so they will be added in the next instance.
+                    else if (i >= setRows || j >= setColumns)
                     {
-                        MeshRenderer[] renderers = GetPreviewMeshes(previewPieces[i, j]);
-                        renderers[0].material = pieceAssets.RedPreviewMat;
+                        previewPieces[i, j].GetComponent<PreviewPieceMeshHandler>().SetGreenPreviewMaterial();
                     }
 
-                    // If pieces are unnafected.
+                    // These pieces are unnafected in the next instance.
                     else
                     {
-                        MeshRenderer[] renderers = GetPreviewMeshes(previewPieces[i, j]);
-                        renderers[0].enabled = false;
-                        renderers[1].enabled = false;
+                        previewPieces[i, j].GetComponent<PreviewPieceMeshHandler>().DisableMeshes();
                     }
+                }
+            }
+        }
+        #endregion
+
+        #region GENERAL
+        /// <summary>
+        /// Correctly set piece positions for a given puzzle piece matrix.
+        /// Is used to set the positions for both the puzzle pieces and the preview pieces.
+        /// Target amount parameters signify not the amount of pieces in the matrix, but the amount of entries that should be considered for calculating starting positions.
+        /// This means if were setting up the puzzle piece positions to match a preview, target amount should be the preview size and not the puzzle instance's size.
+        /// </summary>
+        /// <param name="piecesToSet"></param>
+        /// <param name="targetRowAmount"></param>
+        /// <param name="targetColumnAmount"></param>
+        private void SetPiecePositions(GameObject[,] piecesToSet, int targetRowAmount, int targetColumnAmount)
+        {
+            // NOTE: In the future, there needs to be a way to distinguish if user models are being utilized, and get their size instead.
+            PieceBase pieceBase = pieceAssets.BlankPiece.GetComponent<PieceBase>();
+
+            // Set the distance increment according to the model's width.
+            float distanceIncrement = pieceBase.GetPieceSize();
+
+            // Get starting position for the X axis.
+            float startingPositionX = GetGenerationStartingPosition(distanceIncrement, targetColumnAmount);
+
+            // Get starting position for the Y axis.
+            float startingPositionY = GetGenerationStartingPosition(distanceIncrement, targetRowAmount);
+
+            // Loop through matrix.
+            for (int i = 0; i < piecesToSet.GetLength(0); i++)
+            {
+                for (int j = 0; j < piecesToSet.GetLength(1); j++)
+                {
+                    // Gets the X and Y position for the current puzzle piece.
+                    float positionX = startingPositionX + (distanceIncrement * j);
+                    float positionY = startingPositionY + (distanceIncrement * i);
+
+                    // Sets the piece's position.
+                    piecesToSet[i, j].transform.localPosition = new Vector3(positionX, positionY, 0);
                 }
             }
         }
 
         /// <summary>
-        /// Get Meshrenderer references from preview pieces.
+        /// Calculates the starting position for a given axis, for generating a puzzle or preview instance.
         /// </summary>
-        /// <param name="go"></param>
+        /// <param name="pieceDistanceIncrement"></param>
+        /// <param name="axisTargetAmount"></param>
         /// <returns></returns>
-        private MeshRenderer[] GetPreviewMeshes(GameObject go)
+        private float GetGenerationStartingPosition(float pieceDistanceIncrement, int axisTargetAmount)
         {
-            MeshRenderer[] renderers = new MeshRenderer[2];
+            float startingPosition = 0;
 
-            renderers[0] = go.GetComponent<MeshRenderer>();
-            renderers[1] = go.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
+            // If axis amount is even.
+            if (axisTargetAmount % 2 == 0)
+            {
+                startingPosition += pieceDistanceIncrement / 2;
+                startingPosition -= pieceDistanceIncrement * (axisTargetAmount / 2);
+            }
 
-            return renderers;
+            // If axis amount is odd.
+            else
+            {
+                startingPosition -= pieceDistanceIncrement * ((axisTargetAmount - 1) / 2);
+            }
+
+            return startingPosition;
         }
         #endregion
 
+        #endregion
+
+        #region PUBLIC METHODS
+
+        #region PUZZLE CREATION
+        /// <summary>
+        /// Applies changes to the puzzle according to the current row and column input.
+        /// </summary>
+        public void ApplyChanges()
+        {
+            // We only want this to run in edit mode.
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            // If no changes were made compared to previous puzzle iteration, do nothing.
+            if (selectedColumns == setColumns && selectedRows == setRows)
+            {
+                return;
+            }
+
+            // If no puzzle iteration exists, create a new puzzle.
+            if (SetRows == 0 || setColumns == 0)
+            {
+                puzzlePieces = CreatePuzzle();
+            }
+
+            // Else, modify the current iteration according to new row and column input.
+            else
+            {
+                // Container for previous puzzle iteration, will be used to delete removed rows or columns.
+                GameObject[,] oldPieces = puzzlePieces;
+
+                // Create a new puzzle iteration, keeping unchanged pieces from previous iteration.
+                puzzlePieces = CreatePuzzle(oldPieces);
+
+                // Delete pieces from previous iteration that were removed in new iteration.
+                DeleteRemovedPieces(oldPieces);
+            }
+
+            // Set the local positions of the puzzle pieces inside the puzzle matrix.
+            SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
+
+            // Adjust setRows and setColumns value to match changes.
+            setRows = selectedRows;
+            setColumns = selectedColumns;
+
+            // Delete preview after creating new iteration.
+            DeletePreview();
+
+            // Mark scene as dirty so hierarchy changes can be saved.
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        }
+
+        /// <summary>
+        /// Cancels the changes made to row and column inputs.
+        /// </summary>
+        public void CancelChanges()
+        {
+            // We only want this to run in edit mode.
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            // Function will only run if user made changes to row or column inputs.
+            if (selectedRows == setRows && selectedColumns == setColumns)
+            {
+                return;
+            }
+
+            // Will also only run if a puzzle iteration already exists.
+            if (setRows == 0 || setColumns == 0)
+            {
+                return;
+            }
+
+            // Reset selected rows and columns to match the last puzzle iteration.
+            selectedRows = setRows;
+            selectedColumns = setColumns;
+
+            // Since row and column input is reset, preview needs to be deleted, and piece positions need to be reset to current instance's input.
+            DeletePreview();
+            SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
+
+            // Mark scene as dirty so hierarchy changes can be saved.
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        }
+
+        /// <summary>
+        /// Clears the current board, deleting all pieces.
+        /// </summary>
+        public void ClearBoard()
+        {
+            // We only want this to run in edit mode.
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            // Delete the board.
+            DeleteBoard();
+
+            // Reset the setRows and setColumns variables.
+            setRows = 0;
+            SetColumns = 0;
+
+            // Generate preview after clearing board.
+            GeneratePreview();
+
+            // Mark scene as dirty so changes can be saved.
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        }
+        #endregion
+
+        #region PREVIEW CREATION
+        /// <summary>
+        /// This method is called when the user changes the row or column input in the custom editor.
+        /// It determines whether the preview needs to be generated, modified or deleted.
+        /// Upon determining this, it will call the corresponding method.
+        /// </summary>
+        public void DeterminePreviewAdjustments()
+        {
+            // We only want this to run in edit mode.
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            // When selected rows and columns are the same as the set rows and columns, we want to delete the preview (if it exists).
+            if (selectedRows == setRows && selectedColumns == setColumns)
+            {
+                if (previewPieces != null)
+                {
+                    DeletePreview();
+
+                    // Since before preview deletion puzzle pieces were matching preview's position, we reset its position to be accurate to its previewless instance.
+                    if (puzzlePieces != null)
+                    {
+                        SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
+                    }
+                }
+            }
+
+            // When selected rows and columns differ from the set rows and columns, we want a preview.
+            else
+            {
+                // If there is no preview, we want to generate a new one.
+                if (previewPieces == null)
+                {
+                    GeneratePreview();
+                }
+
+                // If there is a preview, we want to modify it.
+                else
+                {
+                    ModifyPreview();
+                }
+            }
+        }
         #endregion
 
         #region SERIALIZATION
         /// <summary>
         /// Converts the puzzle matrix to a list and serializes it.
-        /// Does the same with the preview matrix.
         /// </summary>
         public void OnBeforeSerialize()
         {
@@ -643,24 +643,10 @@ namespace CircuitPuzzle
                     serializablePieces.Add(new PuzzlePackage<GameObject>(i, j, puzzlePieces[i, j]));
                 }
             }
-
-            // Preview matrix.
-            if (previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
-            {
-                serializablePreview = new List<PuzzlePackage<GameObject>>();
-                for (int i = 0; i < previewPieces.GetLength(0); i++)
-                {
-                    for (int j = 0; j < previewPieces.GetLength(1); j++)
-                    {
-                        serializablePreview.Add(new PuzzlePackage<GameObject>(i, j, previewPieces[i, j]));
-                    }
-                }
-            }
         }
 
         /// <summary>
         /// Converts the serialized list back into the puzzle matrix.
-        /// Does the same with the preview matrix.
         /// </summary>
         public void OnAfterDeserialize()
         {
@@ -674,21 +660,9 @@ namespace CircuitPuzzle
                     puzzlePieces[package.Row, package.Column] = package.Element;
                 }
             }
-
-            // Preview matrix.
-            int matrixRows = GetBiggerValue(selectedRows, SetRows);
-            int matrixColumns = GetBiggerValue(selectedColumns, SetColumns);
-
-            previewPieces = new GameObject[matrixRows, matrixColumns];
-
-            if (previewPieces.GetLength(0) > 0 && previewPieces.GetLength(1) > 0)
-            {
-                foreach (var package in serializablePreview)
-                {
-                    previewPieces[package.Row, package.Column] = package.Element;
-                }
-            }
         }
+        #endregion
+
         #endregion
     }
 }

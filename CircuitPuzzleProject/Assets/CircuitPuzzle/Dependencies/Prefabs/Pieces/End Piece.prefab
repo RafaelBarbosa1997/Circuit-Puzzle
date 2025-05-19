@@ -55,6 +55,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   typeIndex: 5
+  baseRenderer: {fileID: 6995767196233104118}
 --- !u!114 &-3001365224717296430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103,7 +104,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 785638459845798724}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2edc8f7467fa0a046838668a03ea7df1, type: 3}
   m_Name: 
@@ -130,12 +131,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 785638459845798724}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 300d56628e587ee47b24327debc877a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  assets: {fileID: 0}
+  assets: {fileID: -3001365224717296430}
   puzzleSettings: {fileID: 0}
 --- !u!114 &2898171848790461209
 MonoBehaviour:
@@ -412,5 +413,10 @@ PrefabInstance:
 --- !u!4 &6849079137511316707 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1494821185595470436, guid: b6069afb5bbd1dd418d48565124b1697, type: 3}
+  m_PrefabInstance: {fileID: 5454557075827060359}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6995767196233104118 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3073583539863557233, guid: b6069afb5bbd1dd418d48565124b1697, type: 3}
   m_PrefabInstance: {fileID: 5454557075827060359}
   m_PrefabAsset: {fileID: 0}

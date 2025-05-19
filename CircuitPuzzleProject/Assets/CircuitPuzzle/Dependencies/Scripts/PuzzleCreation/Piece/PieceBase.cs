@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -12,9 +9,18 @@ public class PieceBase : MonoBehaviour
     [SerializeField]
     private int typeIndex;
 
+    [SerializeField]
+    private MeshRenderer baseRenderer;
     #endregion
 
     #region PROPERTIES
     public int TypeIndex { get => typeIndex; set => typeIndex = value; }
     #endregion
+
+    public float GetPieceSize()
+    {
+        float pieceSize = baseRenderer.bounds.size.x;
+
+        return pieceSize;
+    }
 }

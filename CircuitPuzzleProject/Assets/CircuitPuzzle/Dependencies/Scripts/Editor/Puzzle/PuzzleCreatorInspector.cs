@@ -158,6 +158,9 @@ namespace CircuitPuzzle
             // Rows label.
             EditorGUILayout.LabelField("Rows", inspectorAssets.DefaultLabel);
 
+            // Checks if the user has changed the number of rows in the IntField.
+            EditorGUI.BeginChangeCheck();
+
             // Displays the IntField for the number of rows.
             // The selected rows value is set according to what the user inputs into the IntField.
             // The GUIStyle of the IntField is set according to whether the selected value is different from the puzzle's set value.
@@ -169,6 +172,12 @@ namespace CircuitPuzzle
             // Displays the left and right arrows for the user to select the number of rows.
             // The selected rows value is set according to what the user clicks.
             targetPuzzleCreator.SelectedRows = DisplaySizeSelectorArrows(targetPuzzleCreator.SelectedRows);
+
+            // If the user has changed the number of rows, check if the preview needs to be updated.
+            if (EditorGUI.EndChangeCheck())
+            {
+                targetPuzzleCreator.DeterminePreviewAdjustments();
+            }
             #endregion
 
             // Spacing //
@@ -180,6 +189,9 @@ namespace CircuitPuzzle
             // Columns label.
             EditorGUILayout.LabelField("Columns", inspectorAssets.DefaultLabel);
 
+            // Checks if the user has changed the number of columns in the IntField.
+            EditorGUI.BeginChangeCheck();
+
             // Displays the IntField for the number of columns.
             // Check rows section for full explanation.
             targetPuzzleCreator.SelectedColumns = EditorGUILayout.IntField(targetPuzzleCreator.SelectedColumns, SetupStylesForChanges(targetPuzzleCreator.SelectedColumns, targetPuzzleCreator.SetColumns));
@@ -189,6 +201,12 @@ namespace CircuitPuzzle
             // Displays the left and right arrows for the user to select the number of columns.
             // The selected columns value is set according to what the user clicks.
             targetPuzzleCreator.SelectedColumns = DisplaySizeSelectorArrows(targetPuzzleCreator.SelectedColumns);
+
+            // If the user has changed the number of columns, check if the preview needs to be updated.
+            if (EditorGUI.EndChangeCheck())
+            {
+                targetPuzzleCreator.DeterminePreviewAdjustments();
+            }
             #endregion
 
             #endregion
@@ -273,19 +291,6 @@ namespace CircuitPuzzle
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-            #endregion
-
-            #region Preview
-            // This probably needs to be moved to the puzzle creator script.
-            if ((targetPuzzleCreator.PreviewRows != targetPuzzleCreator.SelectedRows || targetPuzzleCreator.PreviewColumns != targetPuzzleCreator.SelectedColumns))
-            {
-                targetPuzzleCreator.GeneratePreview();
-            }
-
-            else if ((targetPuzzleCreator.PreviewPieces.GetLength(0) > 0 && targetPuzzleCreator.PreviewPieces.GetLength(1) > 0) && (targetPuzzleCreator.SelectedColumns == targetPuzzleCreator.SetColumns && targetPuzzleCreator.SelectedRows == targetPuzzleCreator.SetRows))
-            {
-                targetPuzzleCreator.ResetPreview();
-            }
             #endregion
 
             // Repaint so button hover states are reflected in real time.
