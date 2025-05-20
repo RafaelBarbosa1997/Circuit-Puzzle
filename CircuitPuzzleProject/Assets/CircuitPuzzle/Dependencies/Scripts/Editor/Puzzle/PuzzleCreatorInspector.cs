@@ -132,7 +132,7 @@ namespace CircuitPuzzle
             else
             {
                 limiterEnabledStyle = inspectorAssets.InactiveButton;
-                limiterDisabledStyle = inspectorAssets.ActiveButton;
+                limiterDisabledStyle = inspectorAssets.ActiveButtonRed;
             }
         }
         #endregion
@@ -268,6 +268,7 @@ namespace CircuitPuzzle
             // Spacing //
             GUILayout.Space(inspectorAssets.GroupSpacing);
 
+            // Limiter buttons.
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
@@ -291,6 +292,12 @@ namespace CircuitPuzzle
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+            // Spacing //
+            GUILayout.Space(inspectorAssets.GroupSpacing);
+
+            // Limiter value.
+            targetPuzzleCreator.LimiterValue = EditorGUILayout.IntField(targetPuzzleCreator.LimiterValue, inspectorAssets.DefaultField);
             #endregion
 
             // Repaint so button hover states are reflected in real time.

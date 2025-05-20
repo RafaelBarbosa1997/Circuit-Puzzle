@@ -10,17 +10,20 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         // The number of rows and columns the user currently has inputted in the inspector, in the custom editor.
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private int selectedRows;
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private int selectedColumns;
         // The number of rows and columns that the last created puzzle iteration contains.
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private int setRows;
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private int setColumns;
+        // Defines the maximum number of puzzle pieces per axis when limiter is enabled.
+        [SerializeField]
+        private int limiterValue;
         // Boolean to limit the number of pieces allowed for rows and columns.
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private bool isLimited;
 
         // Struct with data to convert the puzzle piece matrix to and from a list, so it can be serialized.
@@ -40,38 +43,38 @@ namespace CircuitPuzzle
         }
 
         // List the matrix will be converted to so it can be serialized.
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private List<PuzzlePackage<GameObject>> serializablePieces;
 
         // Reference to transform that will serve as parent to instantiated puzzle pieces.
         private Transform boardTransform;
+        // Transform where preview pieces will be instantiated.
+        private Transform previewTransform;
         // Matrix that contains the reference to the gameobject prefab of each individual puzzle piece in the puzzle.
         // The piece's position in the matrix is the same as its position in the puzzle.
         private GameObject[,] puzzlePieces;
         // Matrix containing preview pieces.
         private GameObject[,] previewPieces;
-        // Transform where preview pieces will be instantiated.
-        private Transform previewTransform;
 
         // This holds references to the prefabs used to instantiate puzzle pieces.
         private PieceAssetsSO pieceAssets;
         #endregion
 
         #region PROPERTIES
-        // Assures that the number of rows does does not go below 0.
-        // If the puzzle's limiter is enabled, it will not go above 20.
         public int SelectedRows
         {
             get { return selectedRows; }
             set
             {
+                // A value below 1 wouldn't allow a puzzle to be created.
                 if (value < 1)
                 {
                     selectedRows = 1;
                 }
-                else if (value > 20 && isLimited)
+                // Limit value when limiter is enabled.
+                else if (value > limiterValue && isLimited)
                 {
-                    selectedRows = 20;
+                    selectedRows = limiterValue;
                 }
                 else
                 {
@@ -80,19 +83,20 @@ namespace CircuitPuzzle
             }
         }
 
-        // Same as the property for rows.
         public int SelectedColumns
         {
             get { return selectedColumns; }
             set
             {
+                // A value below 1 wouldn't allow a puzzle to be created.
                 if (value < 1)
                 {
                     selectedColumns = 1;
                 }
-                else if (value > 20 && isLimited)
+                // Limit value when limiter is enabled.
+                else if (value > limiterValue && isLimited)
                 {
-                    selectedColumns = 20;
+                    selectedColumns = limiterValue;
                 }
                 else
                 {
@@ -100,19 +104,76 @@ namespace CircuitPuzzle
                 }
             }
         }
+
+        public int LimiterValue
+        {
+            get { return limiterValue; }
+            set
+            {
+                // When the limiter is enabled, values need to be clamped according to current instance to avoid errors.
+                if (isLimited)
+                {
+                    // Limiter value can't be lower than current puzzle instance's row or columns values.
+                    if (value < setRows || value < setColumns)
+                    {
+                        Debug.LogWarning("Can't set limiter value lower than current puzzle instance's axis values.");
+                        return;
+                    }
+
+                    // Limiter value can't be lower than the currently selected row or column values.
+                    if (value < selectedRows || value < selectedColumns)
+                    {
+                        Debug.LogWarning("Can't set limiter value lower than current row or column selection.");
+                        return;
+                    }
+                }
+
+                if (value < 1)
+                {
+                    limiterValue = 1;
+                }
+
+                else
+                {
+                    limiterValue = value;
+                }
+            }
+        }
+
+        public bool IsLimited
+        {
+            get { return isLimited; }
+            set
+            {
+                // When trying to enable the limiter, we need to make sure it won't interfere with current instance's values.
+                if(value == true)
+                {
+                    // Can't enable limiter if its value is lower than current puzzle instance's row or column values.
+                    if(limiterValue < setRows || limiterValue < setColumns)
+                    {
+                        Debug.LogWarning("Can't enable limiter because value is lower than current puzzle instance's row or column values");
+                        return;
+                    }
+
+                    // Can't enable limiter if its value is lower than currently selected row or column values.
+                    if(limiterValue < selectedRows || limiterValue < selectedColumns)
+                    {
+                        Debug.LogWarning("Can't enable limiter because value is lower than currently selected row or column values");
+                        return;
+                    }
+                }
+
+                isLimited = value;
+            }
+        }
         public int SetRows { get => setRows; private set => setRows = value; }
         public int SetColumns { get => setColumns; private set => setColumns = value; }
-        public bool IsLimited { get => isLimited; set => isLimited = value; }
-        public GameObject[,] PuzzlePieces { get => puzzlePieces; set => puzzlePieces = value; }
-        public GameObject[,] PreviewPieces { get => previewPieces; private set => previewPieces = value; }
+        public GameObject[,] PuzzlePieces { get => puzzlePieces; private set => puzzlePieces = value; }
         #endregion
 
         #region UNITY METHODS
         private void Awake()
         {
-            // Puzzle defaults to limited pieces, to prevent errors or crashes.
-            isLimited = true;
-
             // Get assetReferences object.
             pieceAssets = GetComponent<PuzzleAssetsHolder>().PieceAssets;
 
@@ -122,14 +183,11 @@ namespace CircuitPuzzle
             // Get preview transform reference.
             previewTransform = transform.GetChild(1);
 
-            // If puzzle matrix has not been initialized, do so.
-            if (puzzlePieces == null)
+            // Generate the initial preview during instantiation, if no puzzle instance exists.
+            if(puzzlePieces.GetLength(0) == 0)
             {
-                puzzlePieces = new GameObject[0, 0];
+                GeneratePreview();
             }
-
-            // Generate the initial preview during instantiation.
-            GeneratePreview();
         }
         #endregion
 

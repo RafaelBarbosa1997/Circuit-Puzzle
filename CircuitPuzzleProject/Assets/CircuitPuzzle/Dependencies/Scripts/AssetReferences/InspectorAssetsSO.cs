@@ -51,16 +51,20 @@ namespace CircuitPuzzle
 
         // Button styles.
         [Header("Button Styles")]
+        [Header("General Buttons")]
+        [SerializeField]
+        private GUIStyle inactiveButton;
+        [SerializeField]
+        private GUIStyle activeButton;
+        [SerializeField]
+        private GUIStyle activeButtonRed;
+        [Header("Custom Models Buttons")]
         [SerializeField]
         private GUIStyle defaultButton;
         [SerializeField]
         private GUIStyle greenButton;
         [SerializeField]
         private GUIStyle redButton;
-        [SerializeField]
-        private GUIStyle inactiveButton;
-        [SerializeField]
-        private GUIStyle activeButton;
 
         // Checkbox style.
         [Header("Checkbox Style")]
@@ -86,6 +90,7 @@ namespace CircuitPuzzle
         public GUIStyle RedButton { get => redButton; private set => redButton = value; }
         public GUIStyle InactiveButton { get => inactiveButton; private set => inactiveButton = value; }
         public GUIStyle ActiveButton { get => activeButton; private set => activeButton = value; }
+        public GUIStyle ActiveButtonRed { get => activeButtonRed; private set => activeButtonRed = value; }
         public GUIStyle Checkbox { get => checkbox; private set => checkbox = value; }
         #endregion
     }
