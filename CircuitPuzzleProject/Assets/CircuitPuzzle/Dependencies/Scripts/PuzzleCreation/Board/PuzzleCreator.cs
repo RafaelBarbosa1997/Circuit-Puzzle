@@ -1,19 +1,12 @@
-using System.Collections.Generic;
-using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 using UnityEngine;
+using UnityEditor;
 
 namespace CircuitPuzzle
 {
     [ExecuteInEditMode]
-    public class PuzzleCreator : MonoBehaviour, ISerializationCallbackReceiver
+    public class PuzzleCreator : MonoBehaviour
     {
         #region FIELDS
-        // The number of rows and columns the user currently has inputted in the inspector, in the custom editor.
-        [SerializeField]
-        private int selectedRows;
-        [SerializeField]
-        private int selectedColumns;
         // The number of rows and columns that the last created puzzle iteration contains.
         [SerializeField]
         private int setRows;
@@ -26,25 +19,9 @@ namespace CircuitPuzzle
         [SerializeField]
         private bool isLimited;
 
-        // Struct with data to convert the puzzle piece matrix to and from a list, so it can be serialized.
-        [System.Serializable]
-        private struct PuzzlePackage<TElement>
-        {
-            public int Row;
-            public int Column;
-            public TElement Element;
-
-            public PuzzlePackage(int row, int column, TElement element)
-            {
-                Row = row;
-                Column = column;
-                Element = element;
-            }
-        }
-
-        // List the matrix will be converted to so it can be serialized.
-        [SerializeField]
-        private List<PuzzlePackage<GameObject>> serializablePieces;
+        // The number of rows and columns the user currently has inputted in the inspector, in the custom editor.
+        private int selectedRows;
+        private int selectedColumns;
 
         // Reference to transform that will serve as parent to instantiated puzzle pieces.
         private Transform boardTransform;
@@ -58,6 +35,10 @@ namespace CircuitPuzzle
 
         // This holds references to the prefabs used to instantiate puzzle pieces.
         private PieceAssetsSO pieceAssets;
+
+        // These provide the string representation of this class' fields to the custom inspector, to access their SerializedProperty.
+        public const string limiterValueName = nameof(limiterValue);
+        public const string isLimitedName = nameof(isLimited);
         #endregion
 
         #region PROPERTIES
@@ -105,88 +86,66 @@ namespace CircuitPuzzle
             }
         }
 
-        public int LimiterValue
-        {
-            get { return limiterValue; }
-            set
-            {
-                // When the limiter is enabled, values need to be clamped according to current instance to avoid errors.
-                if (isLimited)
-                {
-                    // Limiter value can't be lower than current puzzle instance's row or columns values.
-                    if (value < setRows || value < setColumns)
-                    {
-                        Debug.LogWarning("Can't set limiter value lower than current puzzle instance's axis values.");
-                        return;
-                    }
-
-                    // Limiter value can't be lower than the currently selected row or column values.
-                    if (value < selectedRows || value < selectedColumns)
-                    {
-                        Debug.LogWarning("Can't set limiter value lower than current row or column selection.");
-                        return;
-                    }
-                }
-
-                if (value < 1)
-                {
-                    limiterValue = 1;
-                }
-
-                else
-                {
-                    limiterValue = value;
-                }
-            }
-        }
-
-        public bool IsLimited
-        {
-            get { return isLimited; }
-            set
-            {
-                // When trying to enable the limiter, we need to make sure it won't interfere with current instance's values.
-                if(value == true)
-                {
-                    // Can't enable limiter if its value is lower than current puzzle instance's row or column values.
-                    if(limiterValue < setRows || limiterValue < setColumns)
-                    {
-                        Debug.LogWarning("Can't enable limiter because value is lower than current puzzle instance's row or column values");
-                        return;
-                    }
-
-                    // Can't enable limiter if its value is lower than currently selected row or column values.
-                    if(limiterValue < selectedRows || limiterValue < selectedColumns)
-                    {
-                        Debug.LogWarning("Can't enable limiter because value is lower than currently selected row or column values");
-                        return;
-                    }
-                }
-
-                isLimited = value;
-            }
-        }
         public int SetRows { get => setRows; private set => setRows = value; }
         public int SetColumns { get => setColumns; private set => setColumns = value; }
+        public int LimiterValue { get => limiterValue; private set => limiterValue = value; }
+        public bool IsLimited { get => isLimited; private set => isLimited = value; }
         public GameObject[,] PuzzlePieces { get => puzzlePieces; private set => puzzlePieces = value; }
         #endregion
 
         #region UNITY METHODS
         private void Awake()
         {
-            // Get assetReferences object.
             pieceAssets = GetComponent<PuzzleAssetsHolder>().PieceAssets;
 
-            // Get board tranform reference.
             boardTransform = transform.GetChild(0);
 
-            // Get preview transform reference.
             previewTransform = transform.GetChild(1);
 
-            // Generate the initial preview during instantiation, if no puzzle instance exists.
-            if(puzzlePieces.GetLength(0) == 0)
+            // If boardTransform has no children, it means there is no instantiated puzzle instance.
+            // Values for selected rows and columns need to be reset to default value, and an initial preview needs to be generated.
+            if (boardTransform.childCount == 0)
             {
+                selectedRows = 1;
+                selectedColumns = 1;
+
+                // If user saved scene containing a PuzzleCreator with no instantiated puzzle instance, preview pieces will be saved in the scene.
+                // Preview pieces are not meant to be persistent (and previewPieces matrix is not serialized).
+                // So, existing preview pieces on scene load need to be deleted, before generating new preview for the default values.
+                DeletePreviewOnInitialization();
+
                 GeneratePreview();
+            }
+
+            // If boardTransform has children, there is an instantiated puzzle instance.
+            // Values for selected rows and columns needs to be equal to instance's set rows and columns.
+            // Additionally, puzzlePieces matrix needs to be populated with existing puzzle pieces.
+            else
+            {
+                selectedRows = setRows;
+                selectedColumns = setColumns;
+
+                // setRows and setColumns are serialized and will accurately tell us the size of the saved puzzle between scene reloads.
+                // Due to this, we can use it to initialize the puzzlePieces matrix.
+                puzzlePieces = new GameObject[setRows, setColumns];
+
+                // When creating or modifying a puzzle, the pieces themselves are fed their position in the matrix.
+                // We can retrieve this info from them, to repopulate the matrix on initialization.
+                for (int i = 0; i < boardTransform.childCount; i++)
+                {
+                    PieceSwitcher switcher = boardTransform.GetChild(i).GetComponent<PieceSwitcher>();
+
+                    puzzlePieces[switcher.Row, switcher.Column] = switcher.gameObject;
+                }
+
+                // When a puzzle instance exists on scene load, there should not be a preview until the user changes setRows or setColumns value.
+                // If preview pieces were saved to the scene due to an unrelated action making the scene dirty, they need to be deleted.
+                if (DeletePreviewOnInitialization())
+                {
+                    // When a preview exists, the puzzle instance's piece's position is modified to match said preview.
+                    // So if preview pieces did exist on the scene and were deleted, puzzle piece transforms need to be set to the correct previewless position.
+                    SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
+                }
             }
         }
         #endregion
@@ -341,7 +300,7 @@ namespace CircuitPuzzle
             SetPiecePositions(previewPieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
 
             // If a puzzle instance exists when preview is generated, its pieces will be aligned to the preview pieces.
-            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            if (puzzlePieces != null && puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
             {
                 MatchPuzzleToPreview();
             }
@@ -397,7 +356,7 @@ namespace CircuitPuzzle
             SetPiecePositions(previewPieces, previewPieces.GetLength(0), previewPieces.GetLength(1));
 
             // If a puzzle instance exists when preview is generated, its pieces will be aligned to the preview pieces.
-            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            if (puzzlePieces != null && puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
             {
                 MatchPuzzleToPreview();
             }
@@ -453,6 +412,31 @@ namespace CircuitPuzzle
                         previewPieces[i, j].GetComponent<PreviewPieceMeshHandler>().DisableMeshes();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Destroys existing preview pieces, through accessing the preview Transform's children.
+        /// Used during initialization, to ensure that preview pieces that manage to persist through scene reloads don't interfere with intended functionality.
+        /// This is not for active preview management, where preview matrix is used for operations.
+        /// Returns bool so we know whether puzzle pieces need to be repositioned during initialization.
+        /// </summary>
+        /// <returns></returns>
+        private bool DeletePreviewOnInitialization()
+        {
+            if (previewTransform.childCount > 0)
+            {
+                for (int i = previewTransform.childCount - 1; i >= 0; i--)
+                {
+                    DestroyImmediate(previewTransform.GetChild(i).gameObject);
+                }
+
+                return true;
+            }
+
+            else
+            {
+                return false;
             }
         }
         #endregion
@@ -575,7 +559,7 @@ namespace CircuitPuzzle
             DeletePreview();
 
             // Mark scene as dirty so hierarchy changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            EditorUtility.SetDirty(this);
         }
 
         /// <summary>
@@ -608,9 +592,6 @@ namespace CircuitPuzzle
             // Since row and column input is reset, preview needs to be deleted, and piece positions need to be reset to current instance's input.
             DeletePreview();
             SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
-
-            // Mark scene as dirty so hierarchy changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         }
 
         /// <summary>
@@ -635,7 +616,7 @@ namespace CircuitPuzzle
             GeneratePreview();
 
             // Mark scene as dirty so changes can be saved.
-            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            EditorUtility.SetDirty(this);
         }
         #endregion
 
@@ -686,38 +667,73 @@ namespace CircuitPuzzle
         }
         #endregion
 
-        #region SERIALIZATION
+        #region LIMITER VALUES
         /// <summary>
-        /// Converts the puzzle matrix to a list and serializes it.
+        /// Switches the puzzle's size limiter on or off, ensuring restrictions are in place to not enable it with invalid limiter values.
+        /// Is called from the custom editor.
         /// </summary>
-        public void OnBeforeSerialize()
+        /// <param name="desiredState"></param>
+        public void SetLimiterState(bool desiredState)
         {
-            // Puzzle matrix.
-            serializablePieces = new List<PuzzlePackage<GameObject>>();
-            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
+            // When trying to enable the limiter, we need to make sure it won't interfere with current puzzle instance's values.
+            if (desiredState == true)
             {
-                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
+                // Can't enable limiter if its value is lower than current puzzle instance's row or column values.
+                if (limiterValue < setRows || limiterValue < setColumns)
                 {
-                    serializablePieces.Add(new PuzzlePackage<GameObject>(i, j, puzzlePieces[i, j]));
+                    Debug.LogWarning("Can't enable limiter because value is lower than current puzzle instance's row or column values");
+                    return;
+                }
+
+                // Can't enable limiter if its value is lower than currently selected row or column values.
+                if (limiterValue < selectedRows || limiterValue < selectedColumns)
+                {
+                    Debug.LogWarning("Can't enable limiter because value is lower than currently selected row or column values");
+                    return;
                 }
             }
+
+            isLimited = desiredState;
+
+            EditorUtility.SetDirty(this);
         }
 
         /// <summary>
-        /// Converts the serialized list back into the puzzle matrix.
+        /// Sets the puzzle's size limiter's value, which determines how many puzzle pieces can be created for its rows and columns.
+        /// Is called from the custom editor.
         /// </summary>
-        public void OnAfterDeserialize()
+        /// <param name="desiredValue"></param>
+        public void SetLimiterValue(int desiredValue)
         {
-            // Puzzle matrix.
-            puzzlePieces = new GameObject[setRows, setColumns];
-
-            if (puzzlePieces.GetLength(0) > 0 && puzzlePieces.GetLength(1) > 0)
+            // When the limiter is enabled, values need to be clamped according to current puzzle instance to avoid errors.
+            if (isLimited)
             {
-                foreach (var package in serializablePieces)
+                // Limiter value can't be lower than current puzzle instance's row or columns values.
+                if (desiredValue < setRows || desiredValue < setColumns)
                 {
-                    puzzlePieces[package.Row, package.Column] = package.Element;
+                    Debug.LogWarning("Can't set limiter value lower than current puzzle instance's axis values.");
+                    return;
+                }
+
+                // Limiter value can't be lower than the currently selected row or column values.
+                if (desiredValue < selectedRows || desiredValue < selectedColumns)
+                {
+                    Debug.LogWarning("Can't set limiter value lower than current row or column selection.");
+                    return;
                 }
             }
+
+            if (desiredValue < 1)
+            {
+                limiterValue = 1;
+            }
+
+            else
+            {
+                limiterValue = desiredValue;
+            }
+
+            EditorUtility.SetDirty(this);
         }
         #endregion
 

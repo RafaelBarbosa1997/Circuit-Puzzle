@@ -276,18 +276,20 @@ namespace CircuitPuzzle
             SetLimiterStyles();
 
             // Enabled button.
+            // Limiter state is set in class method, to enforce setting restriction logic.
             if (GUILayout.Button("Enabled", limiterEnabledStyle))
             {
-                targetPuzzleCreator.IsLimited = true;
+                targetPuzzleCreator.SetLimiterState(true);
             }
 
             // Spacing //
             GUILayout.Space(inspectorAssets.GroupSpacing);
 
             // Disabled button.
+            // Limiter state is set in class method, to enforce setting restriction logic.
             if (GUILayout.Button("Disabled", limiterDisabledStyle))
             {
-                targetPuzzleCreator.IsLimited = false;
+                targetPuzzleCreator.SetLimiterState(false);
             }
 
             GUILayout.FlexibleSpace();
@@ -296,8 +298,17 @@ namespace CircuitPuzzle
             // Spacing //
             GUILayout.Space(inspectorAssets.GroupSpacing);
 
-            // Limiter value.
-            targetPuzzleCreator.LimiterValue = EditorGUILayout.IntField(targetPuzzleCreator.LimiterValue, inspectorAssets.DefaultField);
+            // Limiter Value.
+            EditorGUI.BeginChangeCheck();
+
+            // The value inputted by the user is saved in a temporary int first.
+            int desiredLimiterValue = EditorGUILayout.IntField(targetPuzzleCreator.LimiterValue, inspectorAssets.DefaultField);
+
+            // Then, the value is attempted to be set in a class method, to enforce restriction logic.
+            if (EditorGUI.EndChangeCheck())
+            {
+                targetPuzzleCreator.SetLimiterValue(desiredLimiterValue);
+            }
             #endregion
 
             // Repaint so button hover states are reflected in real time.
