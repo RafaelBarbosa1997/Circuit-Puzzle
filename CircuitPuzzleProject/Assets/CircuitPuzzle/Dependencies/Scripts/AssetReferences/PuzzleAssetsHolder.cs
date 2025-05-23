@@ -10,10 +10,17 @@ namespace CircuitPuzzle
     public class PuzzleAssetsHolder : MonoBehaviour
     {
         [SerializeField]
+        private Transform boardTransform;
+        [SerializeField]
+        private Transform previewTransform;
+
+        [SerializeField]
         private InspectorAssetsSO inspectorAssets;
         [SerializeField]
         private PieceAssetsSO pieceAssets;
 
+        public Transform BoardTransform { get => boardTransform; private set => boardTransform = value; }
+        public Transform PreviewTransform { get => previewTransform; private set => previewTransform = value; }
         public InspectorAssetsSO InspectorAssets { get => inspectorAssets; private set => inspectorAssets = value; }
         public PieceAssetsSO PieceAssets { get => pieceAssets; private set => pieceAssets = value; }
     }

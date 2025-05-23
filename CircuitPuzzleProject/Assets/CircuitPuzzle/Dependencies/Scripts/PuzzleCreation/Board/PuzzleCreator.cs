@@ -96,11 +96,12 @@ namespace CircuitPuzzle
         #region UNITY METHODS
         private void Awake()
         {
-            pieceAssets = GetComponent<PuzzleAssetsHolder>().PieceAssets;
-
-            boardTransform = transform.GetChild(0);
-
-            previewTransform = transform.GetChild(1);
+            // Get necessary references from PuzzleAssetHolder.
+            // This implementation is due to the use of a custom editor for this class, which doesn't allow for direct manual assignment.
+            PuzzleAssetsHolder assetHolder = GetComponent<PuzzleAssetsHolder>();
+            pieceAssets = assetHolder.PieceAssets;
+            boardTransform = assetHolder.BoardTransform;
+            previewTransform = assetHolder?.PreviewTransform;
 
             // If boardTransform has no children, it means there is no instantiated puzzle instance.
             // Values for selected rows and columns need to be reset to default value, and an initial preview needs to be generated.
