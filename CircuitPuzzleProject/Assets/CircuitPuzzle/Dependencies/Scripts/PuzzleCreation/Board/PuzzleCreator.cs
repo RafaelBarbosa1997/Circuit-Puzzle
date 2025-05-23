@@ -114,7 +114,7 @@ namespace CircuitPuzzle
                 // So, existing preview pieces on scene load need to be deleted, before generating new preview for the default values.
                 DeletePreviewOnInitialization();
 
-                GeneratePreview();
+                CreatePreview();
             }
 
             // If boardTransform has children, there is an instantiated puzzle instance.
@@ -154,74 +154,93 @@ namespace CircuitPuzzle
 
         #region PUZZLE CREATION
         /// <summary>
-        /// Creates the puzzle board by populating puzzle matrix with individual piece prefabs.
-        /// This creates the first iteration of this instance's puzzle, with default puzzle piece prefabs only.
+        /// Generates a new puzzle instance by instantiating individual piece prefabs.
+        /// This creates the first puzzle iteration.
+        /// Puzzle size is defined by user in inspector, who chooses selectedRows and selectedColumns values.
         /// </summary>
-        /// <returns>Matrix containing the gameobjects for the puzzle's pieces</returns>
-        private GameObject[,] CreatePuzzle()
+        private void CreatePuzzle()
         {
-            // Create container for new puzzle.
-            GameObject[,] pieces = new GameObject[selectedRows, selectedColumns];
+            // This matrix will store puzzle piece GameObject references, and can be accessed later to modify the puzzle.
+            // Use of a matrix simplifies puzzle piece access, as it matches the actual puzzle layout.
+            puzzlePieces = new GameObject[selectedRows, selectedColumns];
 
-            // Loop through matrix.
-            for (int i = 0; i < pieces.GetLength(0); i++)
+            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
             {
-                for (int j = 0; j < pieces.GetLength(1); j++)
+                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
                 {
-                    // Fill matrix with blank piece prefabs.
-                    pieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
+                    puzzlePieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
 
-                    // Feed the piece it's own position in the matrix so it can be switched later.
-                    SetPieceIndex(pieces[i, j], i, j);
+                    // Feed the piece its own position in the matrix so it can be switched to different piece types later.
+                    SetPieceIndex(puzzlePieces[i, j], i, j);
                 }
             }
-            // Return the piece matrix.
-            return pieces;
         }
 
         /// <summary>
-        /// Creates the puzzle board by populating puzzle matrix with individual piece prefabs.
-        /// This overload creates any iteration of the puzzle after the first one.
-        /// Either new pieces are added to already existing puzzle, or pieces are removed from it.
-        /// Changes made to piece prefabs belonging to the previous puzzle iteration are not affected.
+        /// Runs instead of CreatePuzzle, when a puzzle instance already exists.
+        /// Modifies the current puzzle instance, adding or deleting rows and columns, based on user input in the inspector.
+        /// Puzzle pieces that remain from previous instance are unnafected.
         /// </summary>
-        /// <param name="oldPieces"></param>
-        /// <returns>Matrix containing the gameobjects for the puzzle's pieces</returns>
-        private GameObject[,] CreatePuzzle(GameObject[,] oldPieces)
+        private void ModifyPuzzle()
         {
-            // Create container for newly created puzzle.
-            GameObject[,] newPieces = new GameObject[selectedRows, selectedColumns];
+            // Old instance needs to be stored in a temporary variable, so we can use it to delete pieces that aren't part of the new instance.
+            GameObject[,] oldPuzzlePieces = puzzlePieces;
 
-            // Loop through matrix.
-            for (int i = 0; i < selectedRows; i++)
+            puzzlePieces = new GameObject[selectedRows, selectedColumns];
+
+            // First loop is through current matrix, to add pieces or reassign references for pieces retained from previous instance.
+            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
             {
-                for (int j = 0; j < selectedColumns; j++)
+                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
                 {
-                    // If previous iteration contains this element.
-                    if (i < oldPieces.GetLength(0) && j < oldPieces.GetLength(1))
+                    // If the previous instance reached this index, these pieces remain in the new instance.
+                    if (i < oldPuzzlePieces.GetLength(0) && j < oldPuzzlePieces.GetLength(1))
                     {
-                        // Piece remains the same.
-                        newPieces[i, j] = oldPieces[i, j];
+                        puzzlePieces[i, j] = oldPuzzlePieces[i, j];
                     }
 
-                    // If previous iteration does not contain this element.
+                    // If the previous instance did not contain this index, a new piece needs to be instantiated for it.
                     else
                     {
-                        // New instance is created.
-                        newPieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
+                        GameObject piece = puzzlePieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
 
-                        // Set piece index.
-                        SetPieceIndex(newPieces[i, j], i, j);
+                        SetPieceIndex(piece, i, j);
                     }
                 }
             }
 
-            // Return the matrix with the newly created puzzle pieces.
-            return newPieces;
+            // Second loop is through old matrix, to destroy pieces that aren't part of the new instance.
+            for (int i = 0; i < oldPuzzlePieces.GetLength(0); i++)
+            {
+                for (int j = 0; j < oldPuzzlePieces.GetLength(1); j++)
+                {
+                    // If index is higher than current matrix size, piece needs to be destroyed.
+                    if(i >= puzzlePieces.GetLength(0) || j >= puzzlePieces.GetLength(1))
+                    {
+                        DestroyImmediate(oldPuzzlePieces[i, j]);
+                    }
+                }
+            }
         }
 
         /// <summary>
-        ///  Sets the pieces index according to its position in the puzzle matrix.
+        /// Destroys all puzzle pieces, clearing the puzzle board.
+        /// </summary>
+        private void DestroyPuzzle()
+        {
+            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
+            {
+                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
+                {
+                    DestroyImmediate(puzzlePieces[i, j]);
+                }
+            }
+
+            puzzlePieces = null;
+        }
+
+        /// <summary>
+        ///  Sets the pieces' index according to its position in the puzzle matrix.
         /// </summary>
         /// <param name="piece"></param>
         /// <param name="row"></param>
@@ -232,46 +251,6 @@ namespace CircuitPuzzle
             switcher.Row = row;
             switcher.Column = column;
         }
-
-        /// <summary>
-        /// This method will remove rows and columns that were in the previous puzzle iteration but not on the new one.
-        /// </summary>
-        private void DeleteRemovedPieces(GameObject[,] oldPieces)
-        {
-            // Loop through matrix.
-            for (int i = 0; i < oldPieces.GetLength(0); i++)
-            {
-                for (int j = 0; j < oldPieces.GetLength(1); j++)
-                {
-                    // If old iteration contains this element but new one does not.
-                    if (i >= puzzlePieces.GetLength(0) || j >= puzzlePieces.GetLength(1))
-                    {
-                        // Destroy piece GameObject.
-                        DestroyImmediate(oldPieces[i, j]);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Deletes all the pieces from the puzzle matrix and makes it into a an empty matrix of 0 length.
-        /// </summary>
-        /// <param name="pieces"></param>
-        private void DeleteBoard()
-        {
-            // Loop through matrix.
-            for (int i = 0; i < puzzlePieces.GetLength(0); i++)
-            {
-                for (int j = 0; j < puzzlePieces.GetLength(1); j++)
-                {
-                    // Destroy the gameobject for each piece.
-                    DestroyImmediate(puzzlePieces[i, j]);
-                }
-            }
-
-            // Reset the matrix.
-            puzzlePieces = new GameObject[0, 0];
-        }
         #endregion
 
         #region PREVIEW CREATION
@@ -279,7 +258,7 @@ namespace CircuitPuzzle
         /// Generates a preview of the puzzle pieces according to the selected rows and columns.
         /// This method is called when a preview instance does not exist yet.
         /// </summary>
-        private void GeneratePreview()
+        private void CreatePreview()
         {
             int previewRowSize = Mathf.Max(selectedRows, setRows);
             int previewColumnSize = Mathf.Max(selectedColumns, setColumns);
@@ -514,10 +493,11 @@ namespace CircuitPuzzle
         #region PUZZLE CREATION
         /// <summary>
         /// Applies changes to the puzzle according to the current row and column input.
+        /// Called from custom editor, when user clicks Apply button.
         /// </summary>
         public void ApplyChanges()
         {
-            // We only want this to run in edit mode.
+            // Puzzle should not be editable during play mode.
             if (Application.isPlaying)
             {
                 return;
@@ -532,65 +512,63 @@ namespace CircuitPuzzle
             // If no puzzle iteration exists, create a new puzzle.
             if (SetRows == 0 || setColumns == 0)
             {
-                puzzlePieces = CreatePuzzle();
+                CreatePuzzle();
             }
 
             // Else, modify the current iteration according to new row and column input.
             else
             {
-                // Container for previous puzzle iteration, will be used to delete removed rows or columns.
-                GameObject[,] oldPieces = puzzlePieces;
-
-                // Create a new puzzle iteration, keeping unchanged pieces from previous iteration.
-                puzzlePieces = CreatePuzzle(oldPieces);
-
-                // Delete pieces from previous iteration that were removed in new iteration.
-                DeleteRemovedPieces(oldPieces);
+                ModifyPuzzle();
             }
 
-            // Set the local positions of the puzzle pieces inside the puzzle matrix.
+            // After puzzle instance is generated, the puzzle pieces' local positions need to be set correctly.
             SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
 
-            // Adjust setRows and setColumns value to match changes.
+            // setRows and setColumns keep track of the size of the saved puzzle, so their values need to be updated when a new instance is created.
             setRows = selectedRows;
             setColumns = selectedColumns;
 
-            // Delete preview after creating new iteration.
+            // When a puzzle instance is generated, preview is no longer needed, so delete it.
             DeletePreview();
 
-            // Mark scene as dirty so hierarchy changes can be saved.
+            // Changes need to be serialized so new puzzle instance is saved.
             EditorUtility.SetDirty(this);
         }
 
         /// <summary>
-        /// Cancels the changes made to row and column inputs.
+        /// Cancels the changes made to row and column fields.
+        /// Called from custom editor, when user clicks Cancel button.
         /// </summary>
         public void CancelChanges()
         {
-            // We only want this to run in edit mode.
+            // Puzzle should not be editable during play mode.
             if (Application.isPlaying)
             {
                 return;
             }
 
-            // Function will only run if user made changes to row or column inputs.
+            // Only run if user made changes to row or column inputs.
             if (selectedRows == setRows && selectedColumns == setColumns)
             {
                 return;
             }
 
-            // Will also only run if a puzzle iteration already exists.
+            // Only run if a puzzle instance already exists.
             if (setRows == 0 || setColumns == 0)
             {
                 return;
             }
 
-            // Reset selected rows and columns to match the last puzzle iteration.
+            // Reset selected rows and columns to match saved puzzle instance size.
             selectedRows = setRows;
             selectedColumns = setColumns;
 
-            // Since row and column input is reset, preview needs to be deleted, and piece positions need to be reset to current instance's input.
+            // If conditions to run CancelChanges() are met, it means a preview for a new puzzle instance exists.
+            // When canceling changes, we are resetting to a point where a preview is no longer needed, so we delete it.
             DeletePreview();
+
+            // When a preview is generated, puzzle piece positions are altered to match the preview of the next instance.
+            // So, after deleting the preview, we also need to set the puzzle pieces back to their correct position for the current instance.
             SetPiecePositions(puzzlePieces, puzzlePieces.GetLength(0), puzzlePieces.GetLength(1));
         }
 
@@ -599,23 +577,29 @@ namespace CircuitPuzzle
         /// </summary>
         public void ClearBoard()
         {
-            // We only want this to run in edit mode.
+            // Puzzle should not be editable during play mode.
             if (Application.isPlaying)
             {
                 return;
             }
 
-            // Delete the board.
-            DeleteBoard();
+            // Only run if a saved puzzle instance exists.
+            if(SetRows == 0 || setColumns == 0)
+            {
+                return;
+            }
 
-            // Reset the setRows and setColumns variables.
+            // Puzzle pieces from current puzzle instance need to be destroyed.
+            DestroyPuzzle();
+
+            // Since we no longer have a saved puzzle instance, setRows and setColumns need to be updated to reflect that.
             setRows = 0;
             SetColumns = 0;
 
-            // Generate preview after clearing board.
-            GeneratePreview();
+            // An active preview should always exist when there is no saved puzzle instance.
+            CreatePreview();
 
-            // Mark scene as dirty so changes can be saved.
+            // Changes need to be serialized to save the deletion of the puzzle instance.
             EditorUtility.SetDirty(this);
         }
         #endregion
@@ -655,7 +639,7 @@ namespace CircuitPuzzle
                 // If there is no preview, we want to generate a new one.
                 if (previewPieces == null)
                 {
-                    GeneratePreview();
+                    CreatePreview();
                 }
 
                 // If there is a preview, we want to modify it.
