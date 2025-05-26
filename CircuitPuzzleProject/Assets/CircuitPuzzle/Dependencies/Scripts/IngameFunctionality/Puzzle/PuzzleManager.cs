@@ -61,7 +61,7 @@ namespace CircuitPuzzle
             selectionIndicator = transform.GetChild(3).gameObject;
 
             // Get the puzzle piece matrix from the puzzle creator.
-            puzzlePieces = GetComponent<PuzzleCreator>().PuzzlePieces;
+            //puzzlePieces = GetComponent<PuzzleCreator>().PuzzlePieces;
 
             // Get grouped events reference.
             groupedEvents = GetComponent<GroupedEndingEvents>();
