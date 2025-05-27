@@ -13,78 +13,80 @@ namespace CircuitPuzzle
     public class PuzzleCreator : MonoBehaviour
     {
         #region FIELDS
-        // The number of rows and columns that the last created puzzle iteration contains.
+        // Number of rows and columns the currently saved puzzle instance contains.
         [SerializeField]
         private int setRows;
         [SerializeField]
         private int setColumns;
-        // Defines the maximum number of puzzle pieces per axis when limiter is enabled.
+        // Defines the maximum number of rows and columns allowed when limiter is enabled.
         [SerializeField]
         private int limiterValue;
-        // Boolean to limit the number of pieces allowed for rows and columns.
+        // Defines whether the number of allowed rows and columns are limited.
         [SerializeField]
         private bool isLimited;
 
-        // The number of rows and columns the user currently has inputted in the inspector, in the custom editor.
+        // Number of rows and columns currently inputted in the inspector.
         private int selectedRows;
         private int selectedColumns;
 
-        // Reference to transform that will serve as parent to puzzle pieces.
+        // Serves as parent to puzzle pieces.
         private Transform boardTransform;
-        // Transform where preview pieces will be instantiated.
+        // Serves as parent to preview pieces.
         private Transform previewTransform;
-        // Matrix containing preview pieces.
+        // Stores preview pieces' references.
         private GameObject[,] previewPieces;
 
-        // This holds references to the prefabs used to instantiate puzzle pieces.
+        // Holds references to the prefabs used to instantiate puzzle pieces.
         private PieceAssetsSO pieceAssets;
-        // This is where the matrix with references to puzzle pieces is stored.
-        // It is setup this way to be centralized, so all classes that need to access the pieces can get it from the same place.
+        // Contains matrix where references to instantiated puzzle pieces are stored.
+        // Setup this way so board state is centralized, allowing classes to access piece references from a single access point.
         private BoardStateManager boardStateManager;
         #endregion
 
         #region PROPERTIES
+        /// <summary>
+        /// Clamps value for selectedRows and selectedColumns.
+        /// Ensures minimum value is respected, as well as maximum value when limiter is enabled.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private int ClampSelectedRowColValues(int value)
+        {
+            // Puzzles can't be created with a value smaller than 1.
+            if (value < 1)
+            {
+                return 1;
+            }
+
+            // When limiter is enabled, value can't exceed its imposed limit.
+            else if (value > limiterValue && isLimited)
+            {
+                return limiterValue;
+            }
+
+            else
+            {
+                return value;
+            }
+        }
+
         public int SelectedRows
         {
             get { return selectedRows; }
+
             set
             {
-                // A value below 1 wouldn't allow a puzzle to be created.
-                if (value < 1)
-                {
-                    selectedRows = 1;
-                }
-                // Limit value when limiter is enabled.
-                else if (value > limiterValue && isLimited)
-                {
-                    selectedRows = limiterValue;
-                }
-                else
-                {
-                    selectedRows = value;
-                }
+                selectedRows = ClampSelectedRowColValues(value);
             }
         }
 
         public int SelectedColumns
         {
             get { return selectedColumns; }
+
             set
             {
-                // A value below 1 wouldn't allow a puzzle to be created.
-                if (value < 1)
-                {
-                    selectedColumns = 1;
-                }
-                // Limit value when limiter is enabled.
-                else if (value > limiterValue && isLimited)
-                {
-                    selectedColumns = limiterValue;
-                }
-                else
-                {
-                    selectedColumns = value;
-                }
+                selectedColumns = ClampSelectedRowColValues(value);
             }
         }
 
@@ -106,22 +108,33 @@ namespace CircuitPuzzle
 
             boardStateManager = GetComponent<BoardStateManager>();
 
-            // User should only be allowed to edit a puzzle instance in edit mode.
             if (Application.isPlaying)
             {
-                // A preview always exists when there is no saved puzzle instance.
-                // Previews shouldn't persist to play mode, so if there is no saved puzzle, we need to delete it.
-                if(setRows == 0 || setColumns == 0)
+                // Previews shouldn't persist to play mode.
+                // Bool will tell us if a preview did exist and was deleted.
+                bool previewDeleted = DeletePreviewOnInitialization();
+
+                // If a saved puzzle instance exists.
+                if (setRows > 0 || setColumns > 0)
                 {
-                    DeletePreviewOnInitialization();
+                    // PuzzleCreator calls BoardStateManager's initialization, since its dependant on it.
+                    boardStateManager.RebuildMatrixFromBoard(setRows, setColumns);
+
+                    // Puzzle piece positions are changed to match preview when one is generated.
+                    // So if preview was deleted, we need to reset puzzle piece's to their correct position.
+                    if (previewDeleted)
+                    {
+                        SetPiecePositions(boardStateManager.PuzzlePieces, setRows, setColumns);
+                    }
                 }
 
-                // Return early as this class is not used in play mode, and doesn't need initialization.
+                // Puzzle is not meant to be edited during play mode.
+                // Nothing besides the previous setup should run.
                 return;
             }
 
-            // If setRows and setColumns are set to 0, it means there is no instantiated puzzle instance.
-            // Values for selected rows and columns need to be reset to default value, and an initial preview needs to be generated.
+            // If a saved puzzle instance doesn't exist,
+            // values for selected rows and columns need to be reset to default value, and an initial preview needs to be generated.
             if (setRows == 0 || setColumns == 0)
             {
                 selectedRows = 1;
@@ -135,9 +148,9 @@ namespace CircuitPuzzle
                 CreatePreview();
             }
 
-            // If setRows and setColumns are higher than 0, there is an instantiated puzzle instance.
-            // Values for selected rows and columns needs to be equal to instance's set rows and columns.
-            // Additionally, puzzlePieces matrix in boardStateManager needs to be populated with existing puzzle pieces.
+            // If a saved puzzle instance exists,
+            // values for selected rows and columns needs to be equal to instance's set rows and columns.
+            // Additionally, puzzlePieces matrix in BoardStateManager needs to be populated with existing puzzle pieces.
             else
             {
                 selectedRows = setRows;
@@ -149,7 +162,7 @@ namespace CircuitPuzzle
 
                 // When a scene with a saved puzzle instance is loaded, the puzzle is in a state where a preview should not exist.
                 // Previews are not meant to be persistent, but an unrelated action can dirty the scene while a preview is active, causing it to be saved to the scene.
-                // So, if this happened, the existing preview needs to be deleted on scene load.
+                // If this happened, the existing preview needs to be deleted on scene load.
                 if (DeletePreviewOnInitialization())
                 {
                     // When a preview is generated, puzzle piece positions are altered to match the preview.
@@ -165,8 +178,8 @@ namespace CircuitPuzzle
         #region PUZZLE CREATION
         /// <summary>
         /// Generates a new puzzle instance by instantiating individual piece prefabs.
-        /// This creates the first puzzle iteration.
-        /// Puzzle size is defined by user in inspector, who chooses selectedRows and selectedColumns values.
+        /// Creates the first puzzle iteration.
+        /// Puzzle size is defined by user in inspector, by choosing selectedRows and selectedColumns values.
         /// </summary>
         private void CreatePuzzle()
         {
@@ -187,7 +200,7 @@ namespace CircuitPuzzle
         }
 
         /// <summary>
-        /// Runs instead of CreatePuzzle, when a puzzle instance already exists.
+        /// Is called instead of CreatePuzzle, when a puzzle instance already exists.
         /// Modifies the current puzzle instance, adding or deleting rows and columns, based on user input in the inspector.
         /// Puzzle pieces that remain from previous instance are unnafected.
         /// </summary>
@@ -214,7 +227,7 @@ namespace CircuitPuzzle
                     {
                         boardStateManager.PuzzlePieces[i, j] = Instantiate(pieceAssets.BlankPiece, boardTransform);
 
-                        SetPieceIndex(boardStateManager.PuzzlePieces[i,j], i, j);
+                        SetPieceIndex(boardStateManager.PuzzlePieces[i, j], i, j);
                     }
                 }
             }
@@ -225,7 +238,7 @@ namespace CircuitPuzzle
                 for (int j = 0; j < oldPuzzlePieces.GetLength(1); j++)
                 {
                     // If index is higher than current matrix size, piece needs to be destroyed.
-                    if(i >= boardStateManager.PuzzlePieces.GetLength(0) || j >= boardStateManager.PuzzlePieces.GetLength(1))
+                    if (i >= boardStateManager.PuzzlePieces.GetLength(0) || j >= boardStateManager.PuzzlePieces.GetLength(1))
                     {
                         DestroyImmediate(oldPuzzlePieces[i, j]);
                     }
@@ -265,18 +278,18 @@ namespace CircuitPuzzle
 
         #region PREVIEW CREATION
         /// <summary>
-        /// Generates a preview of the puzzle pieces according to the selected rows and columns.
-        /// This method is called when a preview instance does not exist yet.
+        /// Generates a preview for a new puzzle instance according to the selected rows and columns.
+        /// Called when a preview instance does not exist yet.
         /// </summary>
         private void CreatePreview()
         {
+            // If the preview size is smaller than current puzzle size, preview pieces will be generated for current size.
+            // This is because these pieces will be used to visualize pieces that will be deleted.
             int previewRowSize = Mathf.Max(selectedRows, setRows);
             int previewColumnSize = Mathf.Max(selectedColumns, setColumns);
 
-            // Since this is a fresh preview, previewPieces needs to be initialized.
             previewPieces = new GameObject[previewRowSize, previewColumnSize];
 
-            // Loop through the selected rows and columns to instantiate preview pieces.
             for (int i = 0; i < previewRowSize; i++)
             {
                 for (int j = 0; j < previewColumnSize; j++)
@@ -301,16 +314,16 @@ namespace CircuitPuzzle
         /// </summary>
         private void ModifyPreview()
         {
-            // We store the old preview pieces in a temporary variable, to determine how to handle the new preview.
+            // We store the old preview matrix in a temporary variable, to delete pieces no longer part of new preview.
             GameObject[,] oldPreview = previewPieces;
 
+            // If the preview size is smaller than current puzzle size, preview pieces will be generated for current size.
+            // This is because these pieces will be used to visualize pieces that will be deleted.
             int previewRowSize = Mathf.Max(selectedRows, setRows);
             int previewColumnSize = Mathf.Max(selectedColumns, setColumns);
 
-            // Reinitialize the preview matrix to the new selected rows and columns.
             previewPieces = new GameObject[previewRowSize, previewColumnSize];
 
-            // Loop through the selected rows and columns to instantiate preview pieces.
             for (int i = 0; i < previewRowSize; i++)
             {
                 for (int j = 0; j < previewColumnSize; j++)
@@ -352,11 +365,10 @@ namespace CircuitPuzzle
         }
 
         /// <summary>
-        /// Deletes the existing preview pieces.
+        /// Deletes existing preview pieces.
         /// </summary>
         private void DeletePreview()
         {
-            // Loop through the preview matrix to destroy all preview pieces.
             for (int i = 0; i < previewPieces.GetLength(0); i++)
             {
                 for (int j = 0; j < previewPieces.GetLength(1); j++)
@@ -365,7 +377,6 @@ namespace CircuitPuzzle
                 }
             }
 
-            // Reset the preview matrix.
             previewPieces = null;
         }
 
@@ -430,7 +441,7 @@ namespace CircuitPuzzle
         }
         #endregion
 
-        #region GENERAL
+        #region CREATION HELPERS
         /// <summary>
         /// Correctly set piece positions for a given puzzle piece matrix.
         /// Is used to set the positions for both the puzzle pieces and the preview pieces.
@@ -445,25 +456,19 @@ namespace CircuitPuzzle
             // NOTE: In the future, there needs to be a way to distinguish if user models are being utilized, and get their size instead.
             PieceBase pieceBase = pieceAssets.BlankPiece.GetComponent<PieceBase>();
 
-            // Set the distance increment according to the model's width.
             float distanceIncrement = pieceBase.GetPieceSize();
 
-            // Get starting position for the X axis.
             float startingPositionX = GetGenerationStartingPosition(distanceIncrement, targetColumnAmount);
 
-            // Get starting position for the Y axis.
             float startingPositionY = GetGenerationStartingPosition(distanceIncrement, targetRowAmount);
 
-            // Loop through matrix.
             for (int i = 0; i < piecesToSet.GetLength(0); i++)
             {
                 for (int j = 0; j < piecesToSet.GetLength(1); j++)
                 {
-                    // Gets the X and Y position for the current puzzle piece.
                     float positionX = startingPositionX + (distanceIncrement * j);
                     float positionY = startingPositionY + (distanceIncrement * i);
 
-                    // Sets the piece's position.
                     piecesToSet[i, j].transform.localPosition = new Vector3(positionX, positionY, 0);
                 }
             }
@@ -594,7 +599,7 @@ namespace CircuitPuzzle
             }
 
             // Only run if a saved puzzle instance exists.
-            if(setRows == 0 || setColumns == 0)
+            if (setRows == 0 || setColumns == 0)
             {
                 return;
             }

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CircuitPuzzle
 {
     /// <summary>
-    /// This is a custom editor for the PuzzleCreator script, which displays an interface to create a circuit puzzle in the inspector.
+    /// Custom editor for the <see cref="PuzzleCreator"> class, which displays an interface to create a circuit puzzle in the inspector.
     /// The interface includes a row and column selector, buttons to apply or cancel changes, and a button to clear the board.
     /// It also includes a limiter option, which when enabled will limit the number of pieces that can be placed on the board.
     /// </summary>
@@ -43,7 +43,7 @@ namespace CircuitPuzzle
 
         #region PRIVATE METHODS
         /// <summary>
-        /// This method compares the selected value of the rows or columns to the set value.
+        /// Compares the selected value of the rows or columns to the set value.
         /// Returns the GUIStyle to be applied to the IntField according to whether the values are the same or not.
         /// Also sets bool that indicates whether changes were made to the puzzle, and will determine the GUIStyle of the cancel and apply button accordingly.
         /// </summary>
@@ -72,7 +72,7 @@ namespace CircuitPuzzle
         }
 
         /// <summary>
-        /// This method displays the left and right arrows for the user to select the number of rows or columns.
+        /// Displays the left and right arrows for the user to select the number of rows or columns.
         /// Either the selected number of rows or columns will be sent in as a parameter.
         /// That value is changed when the arrow buttons are clicked, and then returned to change values in the inspector.
         /// </summary>
@@ -100,7 +100,7 @@ namespace CircuitPuzzle
         }
 
         /// <summary>
-        /// This method sets the GUIStyle for the apply and cancel buttons.
+        /// Sets the GUIStyle for the apply and cancel buttons.
         /// If changes were made to the puzzle, the apply button will be green and the cancel button will be red, to indicate to the user they can apply or cancel their changes.
         /// Otherwise, the buttons will have the default style.
         /// </summary>
@@ -121,6 +121,11 @@ namespace CircuitPuzzle
             }
         }
 
+        /// <summary>
+        /// Sets the GUIStyle for the limiter's enable and disable buttons.
+        /// When limiter is enabled, enabled button will be green and disabled button will be gray.
+        /// When limiter is disabled, disabled button will be red and enabled button will be gray.
+        /// </summary>
         private void SetLimiterStyles()
         {
             if (targetPuzzleCreator.IsLimited)
@@ -140,7 +145,7 @@ namespace CircuitPuzzle
         #region GUI
         public override void OnInspectorGUI()
         {
-            // Initialize bool that determines whether changes to the puzzle were made.
+            // Determines whether changes to the puzzle were made.
             // Starts as false, is set to true in the size selector section, if the user changes the number of rows or columns.
             changesMade = false;
 

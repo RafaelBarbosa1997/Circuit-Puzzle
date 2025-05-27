@@ -9,18 +9,13 @@ namespace CircuitPuzzle
     [ExecuteInEditMode]
     public class BoardStateManager : MonoBehaviour
     {
-        #region FIELDS
         [SerializeField]
         private Transform boardTransform;
 
         private GameObject[,] puzzlePieces;
-        #endregion
 
-        #region PROPERTIES
         public GameObject[,] PuzzlePieces { get => puzzlePieces; set => puzzlePieces = value; }
-        #endregion
 
-        #region PUBLIC METHODS
         /// <summary>
         /// Rebuils the puzzle piece matrix by accessing the puzzle piece GameObject children in boardTransform.
         /// This is called from <see cref="PuzzleCreator"> during initialization, only when a saved puzzle instance exists.
@@ -40,6 +35,5 @@ namespace CircuitPuzzle
                 puzzlePieces[switcher.Row, switcher.Column] = switcher.gameObject;
             }
         }
-        #endregion
     }
 }
