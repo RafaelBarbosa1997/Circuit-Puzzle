@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CircuitPuzzle
 {
     /// <summary>
-    /// This class serves to hold references to the assets and values used in the puzzle.
+    /// Holds references to the assets and values used in the puzzle.
     /// This includes assets and values to be used in the custom editor, as well as for the actual puzzle's functionality.
     /// Other scripts access this class through GetComponent().
     /// </summary>

@@ -145,6 +145,24 @@ namespace CircuitPuzzle
         #region GUI
         public override void OnInspectorGUI()
         {
+            // Puzzle shouldn't be edited during play mode.
+            // Replace custom inspector with warning indicating this.
+            if (Application.isPlaying)
+            {
+                InspectorInvalidStateDisplayer.DisplayPlayModeState(inspectorAssets);
+
+                return;
+            }
+
+            // Puzzle shouldn't be edited in prefab preview mode.
+            // Replace custom inspector with warning indicating this.
+            if (EditorUtility.IsPersistent(targetPuzzleCreator.gameObject))
+            {
+                InspectorInvalidStateDisplayer.DisplayPrefabPreviewState(inspectorAssets);
+
+                return;
+            }
+
             // Determines whether changes to the puzzle were made.
             // Starts as false, is set to true in the size selector section, if the user changes the number of rows or columns.
             changesMade = false;

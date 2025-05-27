@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CircuitPuzzle
 {
     /// <summary>
-    /// This class serves to hold references to the assets and values used in the custom editors.
+    /// Holds references to the assets and values used in the custom editors.
     /// This includes GUIStyles and textures used in the editors' GUI layout.
     /// </summary>
     [CreateAssetMenu(fileName = "CircuitPuzzleInspectorAssets", menuName = "Circuit Puzzle/Inspector Assets")]
@@ -30,6 +30,8 @@ namespace CircuitPuzzle
         private GUIStyle defaultHeader;
         [SerializeField]
         private GUIStyle groupedWarningHeader;
+        [SerializeField]
+        private GUIStyle invalidStateHeader;
 
         // Label styles.
         [Header("Label Styles")]
@@ -79,6 +81,7 @@ namespace CircuitPuzzle
         public Texture2D RightArrow { get => rightArrow; private set => rightArrow = value; }
         public GUIStyle DefaultHeader { get => defaultHeader; private set => defaultHeader = value; }
         public GUIStyle GroupedWarningHeader { get => groupedWarningHeader; private set => groupedWarningHeader = value; }
+        public GUIStyle InvalidStateHeader { get => invalidStateHeader; private set => invalidStateHeader = value; }
         public GUIStyle DefaultLabel { get => defaultLabel; private set => defaultLabel = value; }
         public GUIStyle GroupedWarningLabel { get => groupedWarningLabel; private set => groupedWarningLabel = value; }
         public GUIStyle GroupedWarningSubLabel { get => groupedWarningSubLabel; private set => groupedWarningSubLabel = value; }
