@@ -97,7 +97,7 @@ namespace CircuitPuzzle
         #endregion
 
         #region UNITY METHODS
-        private void Awake()
+        private void OnEnable()
         {
             // Get necessary references from PuzzleAssetHolder.
             // This implementation is due to the use of a custom editor for this class, which doesn't allow for direct manual assignment.
