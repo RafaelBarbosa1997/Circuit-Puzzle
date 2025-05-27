@@ -668,11 +668,16 @@ namespace CircuitPuzzle
 
         #region LIMITER VALUES
         /// <summary>
-        /// Switches the puzzle's size limiter on or off, ensuring restrictions are in place to not enable it with invalid limiter values.
+        /// Attempts to switch the puzzle's size limiter on or off, ensuring restrictions are in place to not enable it with invalid limiter values.
         /// Is called from the custom editor.
         /// </summary>
         /// <param name="desiredState"></param>
-        public void SetLimiterState(bool desiredState)
+        /// <returns>
+        /// 0 = Success
+        /// -1 = Value below current instance's set rows/columns
+        /// -2 = Value below selected rows/columns
+        /// </returns>
+        public int SetLimiterState(bool desiredState)
         {
             // When trying to enable the limiter, we need to make sure it won't interfere with current puzzle instance's values.
             if (desiredState == true)
@@ -680,29 +685,36 @@ namespace CircuitPuzzle
                 // Can't enable limiter if its value is lower than current puzzle instance's row or column values.
                 if (limiterValue < setRows || limiterValue < setColumns)
                 {
-                    Debug.LogWarning("Can't enable limiter because value is lower than current puzzle instance's row or column values");
-                    return;
+                    return -1;
                 }
 
                 // Can't enable limiter if its value is lower than currently selected row or column values.
                 if (limiterValue < selectedRows || limiterValue < selectedColumns)
                 {
-                    Debug.LogWarning("Can't enable limiter because value is lower than currently selected row or column values");
-                    return;
+                    return -2;
                 }
             }
 
             isLimited = desiredState;
 
             EditorUtility.SetDirty(this);
+
+            return 0;
         }
 
         /// <summary>
-        /// Sets the puzzle's size limiter's value, which determines how many puzzle pieces can be created for its rows and columns.
+        /// Attempts to set the puzzle's size limiter's value, which determines how many puzzle pieces can be created for its rows and columns.
         /// Is called from the custom editor.
+        /// Return indicates if value was successfully set or reason for failure,
+        /// and is used to display dialog box warnings in custom editor in case of failure.
         /// </summary>
         /// <param name="desiredValue"></param>
-        public void SetLimiterValue(int desiredValue)
+        /// <returns>
+        /// 0 = Success
+        /// -1 = Value below current instance's set rows/columns
+        /// -2 = Value below selected rows/columns
+        /// </returns>
+        public int SetLimiterValue(int desiredValue)
         {
             // When the limiter is enabled, values need to be clamped according to current puzzle instance to avoid errors.
             if (isLimited)
@@ -710,29 +722,22 @@ namespace CircuitPuzzle
                 // Limiter value can't be lower than current puzzle instance's row or columns values.
                 if (desiredValue < setRows || desiredValue < setColumns)
                 {
-                    Debug.LogWarning("Can't set limiter value lower than current puzzle instance's axis values.");
-                    return;
+                    return -1;
                 }
 
                 // Limiter value can't be lower than the currently selected row or column values.
                 if (desiredValue < selectedRows || desiredValue < selectedColumns)
                 {
-                    Debug.LogWarning("Can't set limiter value lower than current row or column selection.");
-                    return;
+                    return -2;
                 }
             }
 
-            if (desiredValue < 1)
-            {
-                limiterValue = 1;
-            }
-
-            else
-            {
-                limiterValue = desiredValue;
-            }
+            // If limiter is disabled, allow any value above 1.
+            limiterValue = Mathf.Max(1, desiredValue);
 
             EditorUtility.SetDirty(this);
+
+            return 0;
         }
         #endregion
 

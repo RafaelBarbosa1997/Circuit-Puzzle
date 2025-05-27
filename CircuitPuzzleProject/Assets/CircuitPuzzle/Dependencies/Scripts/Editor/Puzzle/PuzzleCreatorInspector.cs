@@ -13,6 +13,7 @@ namespace CircuitPuzzle
     {
         #region FIELDS
         private bool changesMade;
+        private bool limiterValueDialogShown;
 
         private GUIStyle applyStyle;
         private GUIStyle cancelStyle;
@@ -188,7 +189,7 @@ namespace CircuitPuzzle
             // The selected rows value is set according to what the user inputs into the IntField.
             // The GUIStyle of the IntField is set according to whether the selected value is different from the puzzle's set value.
             // This allows to user to know if they have unset changes made in the inspector.
-            targetPuzzleCreator.SelectedRows = EditorGUILayout.IntField(targetPuzzleCreator.SelectedRows, SetupStylesForChanges(targetPuzzleCreator.SelectedRows, targetPuzzleCreator.SetRows));
+            targetPuzzleCreator.SelectedRows = EditorGUILayout.DelayedIntField(targetPuzzleCreator.SelectedRows, SetupStylesForChanges(targetPuzzleCreator.SelectedRows, targetPuzzleCreator.SetRows));
 
             EditorGUILayout.EndHorizontal();
 
@@ -199,6 +200,8 @@ namespace CircuitPuzzle
             // If the user has changed the number of rows, check if the preview needs to be updated.
             if (EditorGUI.EndChangeCheck())
             {
+                GUI.FocusControl(null);
+
                 targetPuzzleCreator.DeterminePreviewAdjustments();
             }
             #endregion
@@ -217,7 +220,7 @@ namespace CircuitPuzzle
 
             // Displays the IntField for the number of columns.
             // Check rows section for full explanation.
-            targetPuzzleCreator.SelectedColumns = EditorGUILayout.IntField(targetPuzzleCreator.SelectedColumns, SetupStylesForChanges(targetPuzzleCreator.SelectedColumns, targetPuzzleCreator.SetColumns));
+            targetPuzzleCreator.SelectedColumns = EditorGUILayout.DelayedIntField(targetPuzzleCreator.SelectedColumns, SetupStylesForChanges(targetPuzzleCreator.SelectedColumns, targetPuzzleCreator.SetColumns));
 
             EditorGUILayout.EndHorizontal();
 
@@ -228,6 +231,8 @@ namespace CircuitPuzzle
             // If the user has changed the number of columns, check if the preview needs to be updated.
             if (EditorGUI.EndChangeCheck())
             {
+                GUI.FocusControl(null);
+
                 targetPuzzleCreator.DeterminePreviewAdjustments();
             }
             #endregion
@@ -291,6 +296,7 @@ namespace CircuitPuzzle
             // Spacing //
             GUILayout.Space(inspectorAssets.GroupSpacing);
 
+            #region LIMITER BUTTON
             // Limiter buttons.
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -302,7 +308,26 @@ namespace CircuitPuzzle
             // Limiter state is set in class method, to enforce setting restriction logic.
             if (GUILayout.Button("Enabled", limiterEnabledStyle))
             {
-                targetPuzzleCreator.SetLimiterState(true);
+                // Return indicates if limiter was successfuly enabled, or reason for failure.
+                int result = targetPuzzleCreator.SetLimiterState(true);
+
+                // Display warning if limiter value lower than current puzzle instance size.
+                if(result == -1)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Limiter State Warning", 
+                        "Can't enable limiter because value is lower than current puzzle instance's row or column values", 
+                        "OK");
+                }
+
+                // Display warning if limiter value lower than currently selected row or column input.
+                else if (result == -2)
+                {
+                    EditorUtility.DisplayDialog(
+                        "Limiter State Warning", 
+                        "Can't enable limiter because value is lower than currently selected row or column values", 
+                        "OK");
+                }
             }
 
             // Spacing //
@@ -317,22 +342,62 @@ namespace CircuitPuzzle
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+            #endregion
 
             // Spacing //
             GUILayout.Space(inspectorAssets.GroupSpacing);
 
+            #region LIMITER VALUE
             // Limiter Value.
             EditorGUI.BeginChangeCheck();
 
-            // The value inputted by the user is saved in a temporary int first.
-            int desiredLimiterValue = EditorGUILayout.IntField(targetPuzzleCreator.LimiterValue, inspectorAssets.DefaultField);
+            // The value inputted by the user is stored before validation.
+            int desiredLimiterValue = EditorGUILayout.DelayedIntField(targetPuzzleCreator.LimiterValue, inspectorAssets.DefaultField);
 
             // Then, the value is attempted to be set in a class method, to enforce restriction logic.
             if (EditorGUI.EndChangeCheck())
             {
-                targetPuzzleCreator.SetLimiterValue(desiredLimiterValue);
+                // Because Unity's DelayedIntField can trigger multiple change events,
+                // this flag ensures the warning dialog only shows once per value change.
+                if (!limiterValueDialogShown)
+                {
+                    // Attempt to set the limiter value, enforcing validation rules in the method.
+                    // Returns an int indicating success or the reason for failure.
+                    int result = targetPuzzleCreator.SetLimiterValue(desiredLimiterValue);
+
+                    // Warning for when value is lower than saved puzzle instance's size.
+                    if (result == -1)
+                    {
+                        EditorUtility.DisplayDialog(
+                            "Limiter Value Warning",
+                            "Can't set limiter value lower than current puzzle instance's row or column values.",
+                            "OK");
+                    }
+
+                    // Warning for when value is lower than currently selected size.
+                    else if (result == -2)
+                    {
+                        EditorUtility.DisplayDialog(
+                            "Limiter Value Warning",
+                            "Can't set limiter value lower than currently selected row or column values.",
+                            "OK");
+                    }
+
+                    GUI.FocusControl(null);
+
+                    limiterValueDialogShown = true;
+                }
             }
             #endregion
+
+            #endregion
+
+            // Unity's GUI system send multiple event types per frame, Repaint is the last.
+            // Reset the dialog flag here to allow dialogs for future changes.
+            if (Event.current.type == EventType.Repaint)
+            {
+                limiterValueDialogShown = false;
+            }
 
             // Repaint so button hover states are reflected in real time.
             Repaint();
