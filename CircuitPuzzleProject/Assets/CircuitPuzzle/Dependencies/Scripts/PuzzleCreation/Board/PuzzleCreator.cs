@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using static CircuitPuzzle.ErrorCodeContainer;
 
 namespace CircuitPuzzle
 {
@@ -668,30 +669,29 @@ namespace CircuitPuzzle
 
         #region LIMITER VALUES
         /// <summary>
-        /// Attempts to switch the puzzle's size limiter on or off, ensuring restrictions are in place to not enable it with invalid limiter values.
-        /// Is called from the custom editor.
+        /// Attempts to switch the puzzle's size limiter on or off, ensuring it isn't enabled with an invalid limiter value.
+        /// Called from the custom editor.
+        /// The return value allows the editor to display a specific warning to the user in case of failure.
         /// </summary>
         /// <param name="desiredState"></param>
         /// <returns>
-        /// 0 = Success
-        /// -1 = Value below current instance's set rows/columns
-        /// -2 = Value below selected rows/columns
+        /// A <see cref="LimiterErrorCodes"/> result indicating success or reason for failure.
         /// </returns>
-        public int SetLimiterState(bool desiredState)
+        public LimiterErrorCodes SetLimiterState(bool desiredState)
         {
-            // When trying to enable the limiter, we need to make sure it won't interfere with current puzzle instance's values.
+            // When trying to enable the limiter, make sure it won't interfere with current puzzle instance's values.
             if (desiredState == true)
             {
                 // Can't enable limiter if its value is lower than current puzzle instance's row or column values.
                 if (limiterValue < setRows || limiterValue < setColumns)
                 {
-                    return -1;
+                    return LimiterErrorCodes.ValueLowerThanSet;
                 }
 
                 // Can't enable limiter if its value is lower than currently selected row or column values.
                 if (limiterValue < selectedRows || limiterValue < selectedColumns)
                 {
-                    return -2;
+                    return LimiterErrorCodes.ValueLowerThanSelected;
                 }
             }
 
@@ -699,36 +699,33 @@ namespace CircuitPuzzle
 
             EditorUtility.SetDirty(this);
 
-            return 0;
+            return LimiterErrorCodes.Success;
         }
 
         /// <summary>
         /// Attempts to set the puzzle's size limiter's value, which determines how many puzzle pieces can be created for its rows and columns.
-        /// Is called from the custom editor.
-        /// Return indicates if value was successfully set or reason for failure,
-        /// and is used to display dialog box warnings in custom editor in case of failure.
+        /// Called from the custom editor.
+        /// The return value allows the editor to display a specific warning to the user in case of failure.
         /// </summary>
         /// <param name="desiredValue"></param>
         /// <returns>
-        /// 0 = Success
-        /// -1 = Value below current instance's set rows/columns
-        /// -2 = Value below selected rows/columns
+        /// A <see cref="LimiterErrorCodes"/> result indicating success or reason for failure.
         /// </returns>
-        public int SetLimiterValue(int desiredValue)
+        public LimiterErrorCodes SetLimiterValue(int desiredValue)
         {
-            // When the limiter is enabled, values need to be clamped according to current puzzle instance to avoid errors.
+            // When the limiter is enabled, values need to be clamped to avoid errors.
             if (isLimited)
             {
                 // Limiter value can't be lower than current puzzle instance's row or columns values.
                 if (desiredValue < setRows || desiredValue < setColumns)
                 {
-                    return -1;
+                    return LimiterErrorCodes.ValueLowerThanSet;
                 }
 
                 // Limiter value can't be lower than the currently selected row or column values.
                 if (desiredValue < selectedRows || desiredValue < selectedColumns)
                 {
-                    return -2;
+                    return LimiterErrorCodes.ValueLowerThanSelected;
                 }
             }
 
@@ -737,7 +734,7 @@ namespace CircuitPuzzle
 
             EditorUtility.SetDirty(this);
 
-            return 0;
+            return LimiterErrorCodes.Success;
         }
         #endregion
 

@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using static CircuitPuzzle.ErrorCodeContainer;
 
 namespace CircuitPuzzle
 {
@@ -309,23 +310,23 @@ namespace CircuitPuzzle
             if (GUILayout.Button("Enabled", limiterEnabledStyle))
             {
                 // Return indicates if limiter was successfuly enabled, or reason for failure.
-                int result = targetPuzzleCreator.SetLimiterState(true);
+                LimiterErrorCodes result = targetPuzzleCreator.SetLimiterState(true);
 
                 // Display warning if limiter value lower than current puzzle instance size.
-                if(result == -1)
+                if (result == LimiterErrorCodes.ValueLowerThanSet)
                 {
                     EditorUtility.DisplayDialog(
-                        "Limiter State Warning", 
-                        "Can't enable limiter because value is lower than current puzzle instance's row or column values", 
+                        "Limiter State Warning",
+                        "Can't enable limiter because value is lower than current puzzle instance's row or column values",
                         "OK");
                 }
 
                 // Display warning if limiter value lower than currently selected row or column input.
-                else if (result == -2)
+                else if (result == LimiterErrorCodes.ValueLowerThanSelected)
                 {
                     EditorUtility.DisplayDialog(
-                        "Limiter State Warning", 
-                        "Can't enable limiter because value is lower than currently selected row or column values", 
+                        "Limiter State Warning",
+                        "Can't enable limiter because value is lower than currently selected row or column values",
                         "OK");
                 }
             }
@@ -362,11 +363,11 @@ namespace CircuitPuzzle
                 if (!limiterValueDialogShown)
                 {
                     // Attempt to set the limiter value, enforcing validation rules in the method.
-                    // Returns an int indicating success or the reason for failure.
-                    int result = targetPuzzleCreator.SetLimiterValue(desiredLimiterValue);
+                    // Return indicates success or the reason for failure.
+                    LimiterErrorCodes result = targetPuzzleCreator.SetLimiterValue(desiredLimiterValue);
 
                     // Warning for when value is lower than saved puzzle instance's size.
-                    if (result == -1)
+                    if (result == LimiterErrorCodes.ValueLowerThanSet)
                     {
                         EditorUtility.DisplayDialog(
                             "Limiter Value Warning",
@@ -375,7 +376,7 @@ namespace CircuitPuzzle
                     }
 
                     // Warning for when value is lower than currently selected size.
-                    else if (result == -2)
+                    else if (result == LimiterErrorCodes.ValueLowerThanSelected)
                     {
                         EditorUtility.DisplayDialog(
                             "Limiter Value Warning",
